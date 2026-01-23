@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 
+import { downloadPdf } from "../utils/downloadPdf";
+
 const HistoryModel = ({ asset, onClose }) => {
   const [history, setHistory] = useState([]);
 
@@ -8,13 +10,18 @@ const HistoryModel = ({ asset, onClose }) => {
     if (!asset) return;
 
     const fetchHistory = async () => {
-      const res = await api.get(`/assets/${asset._id}/history`);
-      setHistory(res.data.history);
+      try {
+        const res = await api.get(`/assets/${asset._id}/history`);
+        setHistory(res.data.history || []);
+      } catch (err) {
+        console.error("Failed to load asset history");
+      }
     };
 
     fetchHistory();
   }, [asset]);
 
+  // 🔹 Backend → UI friendly mapping
   const formatAction = (action) => {
     switch (action) {
       case "assigned":
@@ -22,13 +29,58 @@ const HistoryModel = ({ asset, onClose }) => {
       case "unassigned":
         return "Asset Unassigned";
       case "maintenance_started":
-        return "Sent to Maintenance";
+        return "Maintenance Started";
       case "maintenance_completed":
         return "Maintenance Completed";
       default:
-        return action;
+        return action
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
     }
   };
+
+  const buildUsageTimeline = (history) => {
+    const timeline = [];
+    let current = null;
+
+    const sorted = history
+      .slice()
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    for (const h of sorted) {
+      if (h.action === "assigned" && h.assignedTo) {
+        // close previous session if any
+        if (current) {
+          current.end = h.createdAt;
+          timeline.push(current);
+        }
+
+        current = {
+          user: h.assignedTo?.name || "Unknown",
+          start: h.createdAt,
+          end: null,
+        };
+      }
+
+      if (
+        (h.action === "unassigned" || h.action === "maintenance_started") &&
+        current
+      ) {
+        current.end = h.createdAt;
+        timeline.push(current);
+        current = null;
+      }
+    }
+
+    // still assigned
+    if (current) {
+      timeline.push(current);
+    }
+
+    return timeline;
+  };
+
+  const usageTimeline = buildUsageTimeline(history);
 
   return (
     <div
@@ -39,14 +91,62 @@ const HistoryModel = ({ asset, onClose }) => {
         className="bg-white rounded-xl shadow-lg p-6 w-[900px] max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between mb-4">
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">
             Asset History — {asset.name}
           </h3>
-          <button onClick={onClose}>✕</button>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
         </div>
 
-        <table className="w-full text-sm">
+        {/* 🔹 ASSET SUMMARY (NEW – Phase 3.2.1) */}
+        <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 mb-6">
+          <p>
+            <strong>Category:</strong> {asset.category}
+          </p>
+          <p>
+            <strong>Serial:</strong> {asset.serialNumber}
+          </p>
+          <p>
+            <strong>Cost:</strong> ₹{asset.assetCost || "-"}
+          </p>
+          <p>
+            <strong>Warranty:</strong>{" "}
+            {asset.warrantyExpiry
+              ? new Date(asset.warrantyExpiry).toLocaleDateString()
+              : "-"}
+          </p>
+          <p>
+            <strong>Maintenance Count:</strong> {asset.maintenanceCount ?? 0}
+          </p>
+          <p>
+            <strong>Total Maintenance Cost:</strong> ₹
+            {asset.totalMaintenanceCost ?? 0}
+          </p>
+        </div>
+
+        {usageTimeline.length > 0 && (
+          <div className="mb-5">
+            <h4 className="font-semibold mb-2">Asset Usage Timeline</h4>
+            <div className="space-y-1 text-sm text-gray-700">
+              {usageTimeline.map((u, idx) => (
+                <div key={idx}>
+                  <strong>{u.user}</strong> —{" "}
+                  {new Date(u.start).toLocaleDateString()} →{" "}
+                  {u.end ? new Date(u.end).toLocaleDateString() : "Present"}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* HISTORY TABLE */}
+        <table className="w-full text-sm border-collapse">
           <thead className="bg-gray-200">
             <tr>
               <th className="p-2 text-left">Action</th>
@@ -55,29 +155,64 @@ const HistoryModel = ({ asset, onClose }) => {
               <th className="p-2 text-left">Date</th>
             </tr>
           </thead>
+
           <tbody>
-            {history.map((h) => (
-              <tr key={h._id} className="border-t">
-                <td className="p-2 font-medium">
-                  {formatAction(h.action)}
-                </td>
-                <td className="p-2">{h.performedBy?.name}</td>
-                <td className="p-2">{h.notes || "-"}</td>
-                <td className="p-2">
-                  {new Date(h.createdAt).toLocaleString()}
+            {history.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center p-4 text-gray-500">
+                  No history found
                 </td>
               </tr>
-            ))}
+            ) : (
+              history.map((h) => (
+                <tr key={h._id} className="border-t hover:bg-gray-50">
+                  <td className="p-2 font-medium">{formatAction(h.action)}</td>
+                  <td className="p-2">{h.performedBy?.name || "System"}</td>
+                  <td className="p-2">{h.notes || "-"}</td>
+                  <td className="p-2">
+                    {new Date(h.createdAt).toLocaleString()}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
 
+        {/* FOOTER */}
         <div className="flex justify-end mt-4">
-          <button
-            onClick={onClose}
-            className="bg-gray-500 text-white px-3 py-1 rounded"
-          >
-            Close
-          </button>
+          <div className="flex justify-between mt-4">
+            <div className="space-x-2">
+              <button
+                onClick={() =>
+                  downloadPdf(
+                    `/assets/${asset._id}/history/pdf`,
+                    `${asset.name}-history.pdf`
+                  )
+                }
+                className="bg-teal-600 text-white  px-3 py-1.5 rounded text-sm hover:bg-gray-600"
+              >
+                Download History PDF
+              </button>
+
+              <button
+                onClick={() =>
+                  downloadPdf(
+                    `/assets/${asset._id}/full-report/pdf`,
+                    `${asset.name}-full-report.pdf`
+                  )
+                }
+                className="bg-teal-600 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-600"
+              >
+                Full Asset Report
+              </button>
+              <button
+                onClick={onClose}
+                className="bg-teal-600 text-white  px-3 py-1.5 rounded   text-sm hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

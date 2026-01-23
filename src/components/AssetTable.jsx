@@ -2,7 +2,17 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import HistoryModel from "./HistoryModel";
 
-const AssetTable = () => {
+import MaintenanceCompleteModal from "./MaintenanceCompleteModal";
+import IssueActionModal from "./IssueActionModal";
+
+import AssetTableToolbar from "./AssetTableToolbar";
+
+const AssetTable = ({ onActionComplete }) => {
+  const [maintenanceAsset, setMaintenanceAsset] = useState(null);
+  const [openMaintenanceModal, setOpenMaintenanceModal] = useState(false);
+
+  const [showHistory, setShowHistory] = useState(false);
+
   const [assets, setAssets] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [selectedUser, setSelectedUser] = useState({});
@@ -10,7 +20,28 @@ const AssetTable = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [issueAsset, setIssueAsset] = useState(null);
+
+  const [filter, setFilter] = useState("all"); // all | active | inactive | issue
+
+  const issueCount = assets.filter((a) => a.status === "issue_reported").length;
+
   const token = localStorage.getItem("token");
+
+  const handleSendToMaintenance = (asset) => {
+    // Case 1: Employee reported an issue → open modal
+    if (asset.status === "issue_reported") {
+      setIssueAsset(asset);
+      setOpenMaintenanceModal(true);
+      return;
+    }
+
+    // Case 2: Admin direct maintenance → send immediately
+    sendToMaintenance(asset._id, {
+      reason: "Admin initiated maintenance",
+      notes: "No employee issue reported",
+    });
+  };
 
   const fetchAssets = async () => {
     try {
@@ -31,7 +62,13 @@ const AssetTable = () => {
       const res = await api.get("/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setEmployees(res.data.filter((u) => u.role === "employee"));
+
+      const activeEmployees = res.data.filter(
+        (u) => u.role === "employee" && u.isDeleted !== true, //&& // covers boolean soft delete
+        // !u.deletedAt, // covers timestamp soft delete
+      );
+
+      setEmployees(activeEmployees);
     } catch (err) {
       console.error("Failed to load employees");
     }
@@ -52,9 +89,10 @@ const AssetTable = () => {
       await api.put(
         `/assets/assign/${assetId}`,
         { userId: selectedUser[assetId] },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       fetchAssets();
+      onActionComplete();
     } catch {
       alert("Failed to assign asset");
     }
@@ -67,9 +105,10 @@ const AssetTable = () => {
       await api.put(
         `/assets/unassign/${id}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       fetchAssets();
+      onActionComplete();
     } catch {
       alert("Failed to unassign asset");
     }
@@ -82,9 +121,10 @@ const AssetTable = () => {
       await api.put(
         `/assets/maintenance/${id}`,
         { reason: "Routine maintenance" },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       fetchAssets();
+      onActionComplete();
     } catch {
       alert("Failed to update maintenance status");
     }
@@ -98,29 +138,64 @@ const AssetTable = () => {
       await api.put(
         `/assets/maintenance/${id}/complete`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       fetchAssets();
+      onActionComplete();
     } catch (err) {
-      alert(
-        err.response?.data?.message ||
-          "Failed to complete maintenance"
-      );
+      alert(err.response?.data?.message || "Failed to complete maintenance");
     }
   };
 
   const getStatusBadge = (status) => {
     const base = "px-2 py-1 rounded text-xs font-medium";
+
     switch (status) {
       case "available":
-        return `${base} bg-green-100 text-green-700`;
+        return (
+          <span className={`${base} bg-green-100 text-green-700`}>
+            Available
+          </span>
+        );
       case "assigned":
-        return `${base} bg-blue-100 text-blue-700`;
+        return (
+          <span className={`${base} bg-blue-100 text-blue-700`}>Assigned</span>
+        );
+      case "issue_reported":
+        return (
+          <span className={`${base} bg-red-100 text-red-700`}>
+            Issue Reported
+          </span>
+        );
+
       case "maintenance":
-        return `${base} bg-yellow-100 text-yellow-700`;
+        return (
+          <span className={`${base} bg-yellow-100 text-yellow-700`}>
+            Under Maintenance
+          </span>
+        );
+      case "inactive":
+        return (
+          <span className={`${base} bg-gray-200 text-gray-600`}>Inactive</span>
+        );
+
       default:
-        return `${base} bg-gray-100 text-gray-700`;
+        return (
+          <span className={`${base} bg-gray-100 text-gray-700`}>Unknown</span>
+        );
     }
+  };
+
+  // --- UI helper functions (SAFE, no logic impact) ---  IMAGE DEMO
+  const getAssetImage = () => {
+    // temporary static asset image
+    return "/assets/device.png";
+  };
+
+  const getEmployeeAvatar = (name = "") => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      name,
+    )}&background=EEF2FF&color=4F46E5&size=64`;
   };
 
   if (loading) {
@@ -128,69 +203,122 @@ const AssetTable = () => {
   }
 
   if (error) {
-    return (
-      <p className="text-center text-red-500 p-4">
-        {error}
-      </p>
-    );
+    return <p className="text-center text-red-500 p-4">{error}</p>;
   }
+
+  // ---- FILTER + SORT PIPELINE (SAFE) ----
+  const filteredAssets = assets
+    .filter((asset) => {
+      if (filter === "active") {
+        return asset.status !== "inactive";
+      }
+      if (filter === "available") {
+        return asset.status === "available";
+      }
+      if (filter === "inactive") {
+        return asset.status === "inactive";
+      }
+      if (filter === "issue") {
+        return asset.status === "issue_reported";
+      }
+      return true; // "all"
+    })
+    .sort((a, b) => {
+      // Always push inactive assets to bottom
+      if (a.status === "inactive" && b.status !== "inactive") return 1;
+      if (a.status !== "inactive" && b.status === "inactive") return -1;
+      return 0;
+    });
 
   return (
     <div className="bg-white p-4 rounded-xl shadow h-full">
-      <h3 className="text-lg font-semibold mb-4">
-        Assets
-      </h3>
+      <AssetTableToolbar
+        filter={filter}
+        setFilter={setFilter}
+        issueCount={issueCount}
+      />
 
       <div className="overflow-y-auto max-h-[70vh]">
-        <table className="w-full text-sm table-fixed">
+        <table className="w-full text-sm">
           <thead className="bg-gray-200 sticky top-0">
             <tr>
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Category</th>
-              <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-left">Assigned</th>
-              <th className="p-2 text-left">Actions</th>
+              <th className="p-3 text-left">Asset</th>
+              <th className="p-3 text-left">Category</th>
+              <th className="p-3 text-left">Serial</th>
+              <th className="p-3 text-left">Cost</th>
+              <th className="p-3 text-left">Warranty</th>
+              <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Assigned To</th>
+              <th className="p-3 text-left">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {assets.length === 0 ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center p-4 text-gray-500"
-                >
+                <td colSpan="8" className="text-center p-6 text-gray-500">
                   No assets found
                 </td>
               </tr>
             ) : (
-              assets.map((asset) => (
+              filteredAssets.map((asset) => (
                 <tr
                   key={asset._id}
-                  className="border-t hover:bg-gray-50"
+                  className="border-t hover:bg-gray-50 transition"
                 >
-                  <td className="p-2">
-                    {asset.name}
-                  </td>
-                  <td className="p-2">
-                    {asset.category}
-                  </td>
-
-                  <td className="p-2">
-                    <span
-                      className={getStatusBadge(
-                        asset.status
-                      )}
-                    >
-                      {asset.status}
-                    </span>
+                  {/* ASSET IMAGE + NAME */}
+                  <td className="p-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={getAssetImage()}
+                        alt="asset"
+                        className="w-9 h-9 rounded-md border"
+                      />
+                      <span className="font-medium">{asset.name}</span>
+                    </div>
                   </td>
 
-                  <td className="p-2">
-                    {asset.assignedTo?.name || "-"}
+                  {/* CATEGORY */}
+                  <td className="p-3">{asset.category}</td>
+
+                  {/* SERIAL */}
+                  <td className="p-3 text-xs text-gray-600">
+                    {asset.serialNumber || "-"}
                   </td>
 
-                  <td className="p-2 space-y-1">
+                  {/* COST */}
+                  <td className="p-3">
+                    ₹{asset.assetCost ? asset.assetCost.toLocaleString() : "-"}
+                  </td>
+
+                  {/* WARRANTY */}
+                  <td className="p-3">
+                    {asset.warrantyExpiry
+                      ? new Date(asset.warrantyExpiry).toLocaleDateString()
+                      : "-"}
+                  </td>
+
+                  {/* STATUS */}
+                  <td className="p-3">{getStatusBadge(asset.status)}</td>
+
+                  {/* ASSIGNED EMPLOYEE */}
+                  <td className="p-3">
+                    {asset.assignedTo ? (
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={getEmployeeAvatar(asset.assignedTo.name)}
+                          alt="employee"
+                          className="w-6 h-6 rounded-full"
+                        />
+                        <span className="text-sm">{asset.assignedTo.name}</span>
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+
+                  {/* ACTIONS (UNCHANGED LOGIC) */}
+                  <td className="p-3 space-y-1 w-48">
                     {asset.status === "available" && (
                       <>
                         <select
@@ -198,19 +326,13 @@ const AssetTable = () => {
                           onChange={(e) =>
                             setSelectedUser({
                               ...selectedUser,
-                              [asset._id]:
-                                e.target.value,
+                              [asset._id]: e.target.value,
                             })
                           }
                         >
-                          <option value="">
-                            Select employee
-                          </option>
+                          <option value="">Select employee</option>
                           {employees.map((emp) => (
-                            <option
-                              key={emp._id}
-                              value={emp._id}
-                            >
+                            <option key={emp._id} value={emp._id}>
                               {emp.name}
                             </option>
                           ))}
@@ -218,9 +340,7 @@ const AssetTable = () => {
 
                         <button
                           className="bg-blue-500 text-white text-xs px-2 py-1 rounded w-full"
-                          onClick={() =>
-                            assignAsset(asset._id)
-                          }
+                          onClick={() => assignAsset(asset._id)}
                         >
                           Assign
                         </button>
@@ -230,33 +350,27 @@ const AssetTable = () => {
                     {asset.status === "assigned" && (
                       <button
                         className="bg-gray-500 text-white text-xs px-2 py-1 rounded w-full"
-                        onClick={() =>
-                          unassignAsset(asset._id)
-                        }
+                        onClick={() => unassignAsset(asset._id)}
                       >
                         Unassign
                       </button>
                     )}
 
-                    {/* SEND TO MAINTENANCE */}
-                    {asset.status !== "maintenance" && (
+                    {["available", "assigned", "issue_reported"].includes(
+                      asset.status,
+                    ) && (
                       <button
                         className="bg-yellow-500 text-white text-xs px-2 py-1 rounded w-full"
-                        onClick={() =>
-                          sendToMaintenance(asset._id)
-                        }
+                        onClick={() => handleSendToMaintenance(asset)}
                       >
                         Send to Maintenance
                       </button>
                     )}
 
-                    {/* COMPLETE MAINTENANCE */}
                     {asset.status === "maintenance" && (
                       <button
                         className="bg-green-600 text-white text-xs px-2 py-1 rounded w-full"
-                        onClick={() =>
-                          completeMaintenance(asset._id)
-                        }
+                        onClick={() => setMaintenanceAsset(asset)}
                       >
                         Maintenance Completed
                       </button>
@@ -264,9 +378,10 @@ const AssetTable = () => {
 
                     <button
                       className="bg-slate-600 text-white text-xs px-2 py-1 rounded w-full"
-                      onClick={() =>
-                        setSelectedAsset(asset)
-                      }
+                      onClick={() => {
+                        setSelectedAsset(asset);
+                        setShowHistory(true);
+                      }}
                     >
                       History / PDF
                     </button>
@@ -278,12 +393,40 @@ const AssetTable = () => {
         </table>
       </div>
 
-      {selectedAsset && (
+      {showHistory && selectedAsset && (
         <HistoryModel
           asset={selectedAsset}
-          onClose={() =>
-            setSelectedAsset(null)
-          }
+          onClose={() => {
+            setShowHistory(false);
+            setSelectedAsset(null);
+          }}
+        />
+      )}
+
+      {issueAsset && (
+        <IssueActionModal
+          asset={issueAsset}
+          onClose={() => {
+            setIssueAsset(null);
+            setFilter("all"); // 🔥 RESET FILTER
+          }}
+          onSuccess={() => {
+            fetchAssets();
+            onActionComplete();
+            setIssueAsset(null);
+            setFilter("all"); // 🔥 RESET FILTER
+          }}
+        />
+      )}
+
+      {maintenanceAsset && (
+        <MaintenanceCompleteModal
+          asset={maintenanceAsset}
+          onClose={() => setMaintenanceAsset(null)}
+          onSuccess={() => {
+            fetchAssets();
+            onActionComplete();
+          }}
         />
       )}
     </div>

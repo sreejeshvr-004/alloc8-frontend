@@ -1,44 +1,46 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
-import EmployeeDashboard from "./pages/EmployeeDashboard";
-import ProtectedRoute from "./auth/ProtectedRoute";
 import AdminAssets from "./pages/AdminAssets";
+import AdminAssetCategories from "./pages/AdminAssetCategories";
+import AdminDepartments from "./pages/AdminDepartments";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
+
+import ProtectedRoute from "./auth/ProtectedRoute";
+import AdminLayout from "./layouts/AdminLayout";
+
+import AdminRequests from "./pages/AdminRequests";
+
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* PUBLIC */}
         <Route path="/" element={<Login />} />
 
+        {/* ADMIN ROUTES (WITH SIDEBAR + LAYOUT) */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute role="admin">
-              <AdminDashboard />
+              <AdminLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="requests" element={<AdminRequests />} />
 
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminUsers />
-            </ProtectedRoute>
-          }
-        />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="assets" element={<AdminAssets />} />
+          <Route path="assets/categories" element={<AdminAssetCategories />} />
+          <Route path="departments" element={<AdminDepartments />} />
+        </Route>
 
-        <Route
-          path="/admin/assets"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminAssets />
-            </ProtectedRoute>
-          }
-        />
-
+        {/* EMPLOYEE ROUTES */}
         <Route
           path="/employee"
           element={
@@ -47,6 +49,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
       </Routes>
     </BrowserRouter>
   );

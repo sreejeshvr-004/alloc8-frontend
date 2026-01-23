@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../auth/AuthContext";
 
+import EmployeeMyAssets from "../components/EmployeeMyAssets";
+import ReportIssueModal from "../components/ReportIssueModal";
+
+
 const categories = ["Laptop", "Mobile", "Keyboard", "Monitor", "Mouse"];
 
 const EmployeeDashboard = () => {
@@ -10,7 +14,23 @@ const EmployeeDashboard = () => {
   const [reason, setReason] = useState("");
   const [accordionOpen, setAccordionOpen] = useState(false);
 
+  const [myAssets, setMyAssets] = useState([]);
+  const [selectedAsset, setSelectedAsset] = useState(null);
+
   const { logout } = useAuth();
+
+  const fetchMyAssets = async () => {
+    const res = await api.get("/users/me/assets");
+    setMyAssets(res.data);
+  };
+  const handleIssueReported = () => {
+  fetchMyAssets(); // refresh assets after issue
+};
+
+
+  useEffect(() => {
+    fetchMyAssets();
+  }, []);
 
   const fetchMyRequests = async () => {
     const res = await api.get("/requests/my");
@@ -51,9 +71,12 @@ const EmployeeDashboard = () => {
           Logout
         </button>
       </div>
-
+        <EmployeeMyAssets
+      assets={myAssets}
+      onReport={(asset) => setSelectedAsset(asset)}
+    />
       {/* REQUEST FORM */}
-      <div className="bg-white p-6 rounded-lg shadow mb-8 max-w-xl">
+      <div className="bg-white p-6 mt-4 rounded-lg shadow mb-8 max-w-xl">
         <h3 className="text-lg font-semibold mb-4">Request an Asset</h3>
 
         <form onSubmit={createRequest} className="space-y-4">
@@ -122,6 +145,8 @@ const EmployeeDashboard = () => {
         </form>
       </div>
 
+     
+
       {/* REQUESTS TABLE */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h3 className="text-lg font-semibold mb-4">My Requests</h3>
@@ -160,12 +185,18 @@ const EmployeeDashboard = () => {
                     >
                       {req.status}
                     </span>
+
+                    {req.status === "rejected" && req.rejectionReason && (
+                      <p className="text-xs text-red-600 mt-1">
+                        Reason: {req.rejectionReason}
+                      </p>
+                    )}
                   </td>
 
                   <td className="p-3">{req.assignedAsset?.name || "-"}</td>
 
                   <td className="p-3">
-                    {new Date(req.createdAt).toLocaleDateString()}
+                    {new Date(req.createdAt).toLocaleString()}
                   </td>
                 </tr>
               ))
@@ -173,6 +204,14 @@ const EmployeeDashboard = () => {
           </tbody>
         </table>
       </div>
+      {selectedAsset && (
+  <ReportIssueModal
+    asset={selectedAsset}
+    onClose={() => setSelectedAsset(null)}
+    onSuccess={handleIssueReported}
+  />
+)}
+
     </div>
   );
 };
