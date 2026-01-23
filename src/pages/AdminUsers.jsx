@@ -4,7 +4,6 @@ import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import EmployeeAssetHistoryModal from "../components/EmployeeAssetHistoryModal";
 import { downloadPdf } from "../utils/downloadPdf";
-
 import EditEmployeeModal from "../components/EditEmployeeModal";
 
 const AdminUsers = () => {
@@ -27,6 +26,9 @@ const AdminUsers = () => {
     phone: "",
     salary: "",
   });
+
+  // 🔒 PASSWORD HINT (ADDED)
+  const [showPasswordHint, setShowPasswordHint] = useState(false);
 
   // DEPARTMENT ACCORDION
   const [deptQuery, setDeptQuery] = useState("");
@@ -75,7 +77,7 @@ const AdminUsers = () => {
     const res = await api.post(
       "/users",
       { ...form, role: "employee" },
-      { headers: { Authorization: `Bearer ${token}` } },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     setUsers((prev) => [res.data, ...prev]);
@@ -98,7 +100,7 @@ const AdminUsers = () => {
     });
 
     setUsers((prev) =>
-      prev.map((u) => (u._id === id ? { ...u, isDeleted: true } : u)),
+      prev.map((u) => (u._id === id ? { ...u, isDeleted: true } : u))
     );
   };
 
@@ -106,11 +108,11 @@ const AdminUsers = () => {
     await api.put(
       `/users/${id}/restore`,
       {},
-      { headers: { Authorization: `Bearer ${token}` } },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     setUsers((prev) =>
-      prev.map((u) => (u._id === id ? { ...u, isDeleted: false } : u)),
+      prev.map((u) => (u._id === id ? { ...u, isDeleted: false } : u))
     );
   };
 
@@ -122,15 +124,15 @@ const AdminUsers = () => {
       search
         ? u.name.toLowerCase().includes(search.toLowerCase()) ||
           u.email.toLowerCase().includes(search.toLowerCase())
-        : true,
+        : true
     )
     .filter((u) =>
       departmentFilter
         ? u.department?.toLowerCase().includes(departmentFilter.toLowerCase())
-        : true,
+        : true
     )
     .filter((u) =>
-      status ? (status === "active" ? !u.isDeleted : u.isDeleted) : true,
+      status ? (status === "active" ? !u.isDeleted : u.isDeleted) : true
     )
     .sort((a, b) => {
       if (sortBy === "name") return a.name.localeCompare(b.name);
@@ -206,15 +208,31 @@ const AdminUsers = () => {
               required
             />
 
-            <input
-              name="password"
-              type="password"
-              placeholder="Temporary Password"
-              value={form.password}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
-              required
-            />
+            {/* 🔒 PASSWORD WITH HINT */}
+            <div className="relative">
+              <input
+                name="password"
+                type="password"
+                placeholder="Temporary Password"
+                value={form.password}
+                onChange={handleChange}
+                onFocus={() => setShowPasswordHint(true)}
+                onBlur={() => setShowPasswordHint(false)}
+                className="w-full border p-2 rounded"
+                required
+              />
+
+              {showPasswordHint && (
+                <div className="absolute top-full left-0 mt-2 w-full bg-gray-900 text-white text-xs rounded-md p-3 shadow-lg z-20">
+                  <p className="font-semibold mb-1">Password must contain:</p>
+                  <ul className="list-disc list-inside space-y-1 text-gray-200">
+                    <li>At least 1 uppercase letter (A–Z)</li>
+                    <li>At least 1 number (0–9)</li>
+                    <li>At least 1 symbol (!@#$%^&*)</li>
+                  </ul>
+                </div>
+              )}
+            </div>
 
             <input
               name="phone"
@@ -261,7 +279,7 @@ const AdminUsers = () => {
                 <div className="absolute z-10 w-full bg-white border rounded shadow max-h-40 overflow-y-auto">
                   {departments
                     .filter((d) =>
-                      d.toLowerCase().includes(deptQuery.toLowerCase()),
+                      d.toLowerCase().includes(deptQuery.toLowerCase())
                     )
                     .map((d) => (
                       <div
@@ -292,8 +310,8 @@ const AdminUsers = () => {
           </form>
         </div>
 
-        {/* EMPLOYEES TABLE */}
-        <div className="bg-white p-6 rounded-xl shadow">
+        {/* EMPLOYEES TABLE (UNCHANGED) */}
+               <div className="bg-white p-6 rounded-xl shadow">
           <h3 className="text-lg font-semibold mb-4">Employees</h3>
 
           {/* FILTERS */}
@@ -406,6 +424,7 @@ const AdminUsers = () => {
             </table>
           </div>
         </div>
+
       </div>
 
       {selectedEmployeeId && (
