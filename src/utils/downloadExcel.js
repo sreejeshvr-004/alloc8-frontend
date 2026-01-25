@@ -1,13 +1,14 @@
 import api from "../api/axios";
 
-export const downloadPdf = async (url, filename) => {
+export const downloadExcel = async (url, filename) => {
   try {
     const response = await api.get(url, {
       responseType: "blob",
     });
 
     const blob = new Blob([response.data], {
-      type: "application/pdf",
+      type:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
     const link = document.createElement("a");
@@ -18,8 +19,7 @@ export const downloadPdf = async (url, filename) => {
     link.click();
     document.body.removeChild(link);
   } catch (error) {
-    alert("Failed to download PDF");
+    alert("Failed to download Excel");
     console.error(error);
   }
 };
-

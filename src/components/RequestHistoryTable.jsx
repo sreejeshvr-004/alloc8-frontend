@@ -17,7 +17,7 @@ const RequestHistoryTable = ({ requests }) => {
       <h3 className="text-md font-semibold mb-4">Request History</h3>
 
       {/* TABLE */}
-      <div className="overflow-y-auto max-h-[400px]">
+      <div className="overflow-y-auto max-h-400px">
         <table className="w-full text-sm">
           <thead className="bg-gray-200 sticky top-0">
             <tr>

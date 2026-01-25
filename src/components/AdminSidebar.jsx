@@ -55,7 +55,7 @@ const AdminSidebar = ({ pendingCount = 0 }) => {
                   bg-red-600 text-white
                   text-[10px] font-semibold
                   rounded-full px-1.5 py-0.5
-                  min-w-[16px] text-center
+                  min-w-16px text-center
                 ">
                   {pendingCount}
                 </span>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { downloadPdf } from "../utils/downloadPdf";
-import { downloadUserFullReport } from "../utils/downloadPdf";
+// import { downloadUserFullReport } from "../utils/downloadPdf";
 
 const EmployeeAssetHistoryModal = ({ employeeId, onClose }) => {
   const [employee, setEmployee] = useState(null);
@@ -46,7 +46,7 @@ const EmployeeAssetHistoryModal = ({ employeeId, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-lg p-6 w-[1000px] max-h-[85vh] overflow-y-auto"
+        className="bg-white rounded-xl shadow-lg p-6 w-1000px max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}

@@ -4,6 +4,8 @@ import { useAuth } from "../auth/AuthContext";
 
 import EmployeeMyAssets from "../components/EmployeeMyAssets";
 import ReportIssueModal from "../components/ReportIssueModal";
+import toast from "react-hot-toast";
+
 
 
 const categories = ["Laptop", "Mobile", "Keyboard", "Monitor", "Mouse"];
@@ -41,23 +43,31 @@ const EmployeeDashboard = () => {
     fetchMyRequests();
   }, []);
 
-  const createRequest = async (e) => {
-    e.preventDefault();
+const createRequest = async (e) => {
+  e.preventDefault();
 
-    if (!assetCategory) {
-      alert("Please select an asset category");
-      return;
-    }
+  if (!assetCategory) {
+    toast.error("Please select an asset category");
+    return;
+  }
 
+  try {
     await api.post("/requests", {
       assetCategory,
       reason,
     });
 
+    // ✅ SUCCESS NOTIFICATION
+    toast.success("Request sent successfully");
+
     setAssetCategory("");
     setReason("");
     fetchMyRequests();
-  };
+  } catch (error) {
+    toast.error("Failed to send request");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">

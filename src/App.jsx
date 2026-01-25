@@ -12,13 +12,16 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
 
 import AdminRequests from "./pages/AdminRequests";
+import {Toaster} from "react-hot-toast"
+
+import AdminReports from "./pages/AdminReports";
 
 
 function App() {
   return (
     <BrowserRouter>
+    <Toaster position="top-right" />
       <Routes>
-
         {/* PUBLIC */}
         <Route path="/" element={<Login />} />
 
@@ -38,6 +41,8 @@ function App() {
           <Route path="assets" element={<AdminAssets />} />
           <Route path="assets/categories" element={<AdminAssetCategories />} />
           <Route path="departments" element={<AdminDepartments />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
+
         </Route>
 
         {/* EMPLOYEE ROUTES */}
