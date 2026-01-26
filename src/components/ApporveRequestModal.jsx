@@ -2,28 +2,43 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 
 const ApproveRequestModal = ({ request, onClose, onSuccess }) => {
+  const [loading, setLoading] = useState(true);
+
   const [assets, setAssets] = useState([]);
   const [selectedAsset, setSelectedAsset] = useState("");
   const token = localStorage.getItem("token");
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchAssets = async () => {
-      const res = await api.get("/assets", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      setLoading(true);
+      try {
+        const res = await api.get("/assets", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const filtered = res.data.filter(
-        (a) =>
-          a.category === request.assetCategory &&
-          a.status === "available" &&
-          !a.isDeleted
-      );
+        if (!mounted) return;
 
-      setAssets(filtered);
+        const filtered = res.data.filter(
+          (a) =>
+            a.category === request.assetCategory &&
+            a.status === "available" &&
+            !a.isDeleted,
+        );
+
+        setAssets(filtered);
+      } finally {
+        if (mounted) setLoading(false);
+      }
     };
 
     fetchAssets();
-  }, []);
+
+    return () => {
+      mounted = false;
+    };
+  }, [request._id]);
 
   const approve = async () => {
     await api.put(
@@ -32,7 +47,7 @@ const ApproveRequestModal = ({ request, onClose, onSuccess }) => {
         status: "approved",
         assetId: selectedAsset,
       },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     );
 
     onSuccess();
@@ -41,7 +56,7 @@ const ApproveRequestModal = ({ request, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white w-[420px] rounded-xl p-5 shadow">
+      <div className="bg-white w-90% max-w-md rounded-xl p-5 shadow">
         <h3 className="text-lg font-semibold mb-3">Approve Request</h3>
 
         <p className="text-sm mb-2">
@@ -51,7 +66,9 @@ const ApproveRequestModal = ({ request, onClose, onSuccess }) => {
           <b>Requested Category:</b> {request.assetCategory}
         </p>
 
-        {assets.length === 0 ? (
+        {loading ? (
+          <p className="text-sm text-gray-500">Checking available assets…</p>
+        ) : assets.length === 0 ? (
           <p className="text-red-600 text-sm">
             No available assets for this category.
           </p>
@@ -79,7 +96,7 @@ const ApproveRequestModal = ({ request, onClose, onSuccess }) => {
           </button>
 
           <button
-            disabled={!selectedAsset}
+            disabled={!selectedAsset || loading}
             onClick={approve}
             className={`px-3 py-1 text-sm rounded text-white ${
               selectedAsset

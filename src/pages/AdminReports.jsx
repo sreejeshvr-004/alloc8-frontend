@@ -1,4 +1,5 @@
 import api from "../api/axios";
+import { useEffect, useState } from "react";
 
 import ReportStatCards from "../components/reports/ReportStatCards";
 import ReportSection from "../components/reports/ReportSection";
@@ -19,22 +20,31 @@ import {
   UserSquare,
 } from "lucide-react";
 
-import { useState } from "react";
 import ReportPreviewModal from "../components/reports/ReportPreviewModal";
 import ReportTable from "../components/reports/ReportTable";
 import { downloadPdf } from "../utils/downloadPdf";
 import { downloadExcel } from "../utils/downloadExcel";
 
 const AdminReports = () => {
-  // TEMP static data (API comes later)
-  const stats = {
-    totalAssets: 1250,
-    assigned: 980,
-    unassigned: 120,
-    maintenance: 25,
-    expiring: 45,
-    pending: 18,
-  };
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [statsError, setStatsError] = useState(false);
+
+  useEffect(() => {
+    const fetchOverviewStats = async () => {
+      try {
+        const res = await api.get("/reports/overview");
+        setStats(res.data);
+      } catch (err) {
+        console.error("Failed to load report overview", err);
+        setStatsError(true);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchOverviewStats();
+  }, []);
 
   const [preview, setPreview] = useState({
     open: false,
@@ -164,38 +174,36 @@ const AdminReports = () => {
   };
 
   const openTransferReportsPreview = async () => {
-  try {
-    const res = await api.get("/reports/assignment/transfers");
+    try {
+      const res = await api.get("/reports/assignment/transfers");
 
-    setPreview({
-      open: true,
-      title: "Transfer Reports",
-      columns: res.data.columns,
-      rows: res.data.rows,
-    });
-  } catch (err) {
-    alert("Failed to load transfer reports");
-    console.error(err);
-  }
-};
+      setPreview({
+        open: true,
+        title: "Transfer Reports",
+        columns: res.data.columns,
+        rows: res.data.rows,
+      });
+    } catch (err) {
+      alert("Failed to load transfer reports");
+      console.error(err);
+    }
+  };
 
-const openEmployeeAssetListPreview = async () => {
-  try {
-    const res = await api.get("/reports/assignment/employee-assets");
+  const openEmployeeAssetListPreview = async () => {
+    try {
+      const res = await api.get("/reports/assignment/employee-assets");
 
-    setPreview({
-      open: true,
-      title: "Employee Asset List",
-      columns: res.data.columns,
-      rows: res.data.rows,
-    });
-  } catch (err) {
-    alert("Failed to load employee asset list");
-    console.error(err);
-  }
-};
-
-
+      setPreview({
+        open: true,
+        title: "Employee Asset List",
+        columns: res.data.columns,
+        rows: res.data.rows,
+      });
+    } catch (err) {
+      alert("Failed to load employee asset list");
+      console.error(err);
+    }
+  };
 
   const exportAssetRegisterPDF = () => {
     downloadPdf("/reports/assets/full/pdf", "full-asset-register.pdf");
@@ -207,7 +215,10 @@ const openEmployeeAssetListPreview = async () => {
     downloadPdf("/reports/assets/by-category/pdf", "assets-by-category.pdf");
   };
   const exportAssetsByCategoryExcel = () => {
-    downloadExcel("/reports/assets/by-category/excel","assets-by-category.xlsx");
+    downloadExcel(
+      "/reports/assets/by-category/excel",
+      "assets-by-category.xlsx",
+    );
   };
   const exportAssetsByStatusPDF = () => {
     downloadPdf("/reports/assets/by-status/pdf", "assets-by-status.pdf");
@@ -219,7 +230,10 @@ const openEmployeeAssetListPreview = async () => {
     downloadPdf("/reports/assets/by-location/pdf", "assets-by-location.pdf");
   };
   const exportAssetsByLocationExcel = () => {
-    downloadExcel("/reports/assets/by-location/excel","assets-by-location.xlsx");
+    downloadExcel(
+      "/reports/assets/by-location/excel",
+      "assets-by-location.xlsx",
+    );
   };
   const exportMaintenanceLogsPDF = () => {
     downloadPdf("/reports/maintenance/logs/pdf", "maintenance-logs.pdf");
@@ -228,10 +242,16 @@ const openEmployeeAssetListPreview = async () => {
     downloadExcel("/reports/maintenance/logs/excel", "maintenance-logs.xlsx");
   };
   const exportWarrantyPDF = () => {
-    downloadPdf("/reports/assets/warranty/expiring/pdf","warranty-expiring.pdf");
+    downloadPdf(
+      "/reports/assets/warranty/expiring/pdf",
+      "warranty-expiring.pdf",
+    );
   };
   const exportWarrantyExcel = () => {
-    downloadExcel("/reports/assets/warranty/expiring/excel","warranty-expiring.xlsx",);
+    downloadExcel(
+      "/reports/assets/warranty/expiring/excel",
+      "warranty-expiring.xlsx",
+    );
   };
   const exportWarrantyAMCPDF = () => {
     downloadPdf("/reports/assets/warranty/pdf", "warranty-amc-report.pdf");
@@ -241,26 +261,38 @@ const openEmployeeAssetListPreview = async () => {
   };
 
   const exportAssignmentHistoryPDF = () => {
-  downloadPdf("/reports/assignment/history/pdf","assignment-history.pdf");
-};
-const exportAssignmentHistoryExcel = () => {
-  downloadExcel( "/reports/assignment/history/excel","assignment-history.xlsx");
-};
-const exportTransferReportsPDF = () => {
-  downloadPdf("/reports/assignment/transfers/pdf","transfer-reports.pdf");
-};
+    downloadPdf("/reports/assignment/history/pdf", "assignment-history.pdf");
+  };
+  const exportAssignmentHistoryExcel = () => {
+    downloadExcel(
+      "/reports/assignment/history/excel",
+      "assignment-history.xlsx",
+    );
+  };
+  const exportTransferReportsPDF = () => {
+    downloadPdf("/reports/assignment/transfers/pdf", "transfer-reports.pdf");
+  };
 
-const exportTransferReportsExcel = () => {
-  downloadExcel("/reports/assignment/transfers/excel","transfer-reports.xlsx");
-};
+  const exportTransferReportsExcel = () => {
+    downloadExcel(
+      "/reports/assignment/transfers/excel",
+      "transfer-reports.xlsx",
+    );
+  };
 
-const exportEmployeeAssetListPDF = () => {
-  downloadPdf("/reports/assignment/employee-assets/pdf","employee-asset-list.pdf");
-};
+  const exportEmployeeAssetListPDF = () => {
+    downloadPdf(
+      "/reports/assignment/employee-assets/pdf",
+      "employee-asset-list.pdf",
+    );
+  };
 
-const exportEmployeeAssetListExcel = () => {
-  downloadExcel("/reports/assignment/employee-assets/excel","employee-asset-list.xlsx");
-};
+  const exportEmployeeAssetListExcel = () => {
+    downloadExcel(
+      "/reports/assignment/employee-assets/excel",
+      "employee-asset-list.xlsx",
+    );
+  };
 
   const reportExportMap = {
     "Full Asset Register": {
@@ -291,20 +323,18 @@ const exportEmployeeAssetListExcel = () => {
       pdf: exportWarrantyAMCPDF,
       excel: exportWarrantyAMCExcel,
     },
-   "Assignment History": {
-    pdf: exportAssignmentHistoryPDF,
-    excel: exportAssignmentHistoryExcel,
-  },
-   "Transfer Reports": {
-    pdf: exportTransferReportsPDF,
-    excel: exportTransferReportsExcel,
-  },
-  "Employee Asset List": {
-  pdf: exportEmployeeAssetListPDF,
-  excel: exportEmployeeAssetListExcel,
-},
-
-
+    "Assignment History": {
+      pdf: exportAssignmentHistoryPDF,
+      excel: exportAssignmentHistoryExcel,
+    },
+    "Transfer Reports": {
+      pdf: exportTransferReportsPDF,
+      excel: exportTransferReportsExcel,
+    },
+    "Employee Asset List": {
+      pdf: exportEmployeeAssetListPDF,
+      excel: exportEmployeeAssetListExcel,
+    },
   };
 
   return (
@@ -312,8 +342,25 @@ const exportEmployeeAssetListExcel = () => {
       {/* PAGE TITLE */}
       <h1 className="text-2xl font-semibold mb-6">Asset Management Reports</h1>
 
-      {/* TOP STATS */}
-      <ReportStatCards stats={stats} />
+      {/* OVERVIEW STATS */} {/* TOP STATS */}
+      {loadingStats && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="h-20 rounded-xl bg-gray-200 animate-pulse"
+            />
+          ))}
+        </div>
+      )}
+
+      {statsError && (
+        <div className="mb-6 text-sm text-red-600">
+          Failed to load overview statistics.
+        </div>
+      )}
+
+      {stats && <ReportStatCards stats={stats} />}
 
       {/* ASSET INVENTORY */}
       <ReportSection
@@ -427,14 +474,13 @@ const exportEmployeeAssetListExcel = () => {
             title="Transfer Reports"
             icon={<ArrowLeftRight size={18} />}
             onClick={openTransferReportsPreview}
-         />
+          />
 
-         <ReportItem
+          <ReportItem
             title="Employee Asset List"
-           icon={<UserSquare size={18} />}
-           onClick={openEmployeeAssetListPreview}
-         />
-
+            icon={<UserSquare size={18} />}
+            onClick={openEmployeeAssetListPreview}
+          />
         </div>
       </ReportSection>
 

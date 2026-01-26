@@ -9,7 +9,7 @@ const AssetDetailsModal = ({ asset, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-lg p-6 w-[900px] max-h-[80vh] overflow-y-auto"
+        className="bg-white rounded-xl shadow-lg p-6 w-900px max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}
