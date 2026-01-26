@@ -4,13 +4,17 @@ import HistoryModel from "./HistoryModel";
 
 import MaintenanceCompleteModal from "./MaintenanceCompleteModal";
 import IssueActionModal from "./IssueActionModal";
+import ConfirmModal from "./ConfirmModal";
 
 import AssetTableToolbar from "./AssetTableToolbar";
+import MobileAssetRow from "./mobile/MobileAssetRow";
+
+
 
 const AssetTable = ({ onActionComplete }) => {
   const [maintenanceAsset, setMaintenanceAsset] = useState(null);
   const [openMaintenanceModal, setOpenMaintenanceModal] = useState(false);
-
+ 
   const [showHistory, setShowHistory] = useState(false);
 
   const [assets, setAssets] = useState([]);
@@ -19,6 +23,14 @@ const AssetTable = ({ onActionComplete }) => {
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [confirm, setConfirm] = useState({
+    open: false,
+    action: null,
+    asset: null,
+  });
+  const closeConfirm = () =>
+    setConfirm({ open: false, action: null, asset: null });
 
   const [issueAsset, setIssueAsset] = useState(null);
 
@@ -99,7 +111,7 @@ const AssetTable = ({ onActionComplete }) => {
   };
 
   const unassignAsset = async (id) => {
-    if (!window.confirm("Unassign this asset?")) return;
+    // if (!window.confirm("Unassign this asset?")) return;
 
     try {
       await api.put(
@@ -115,7 +127,7 @@ const AssetTable = ({ onActionComplete }) => {
   };
 
   const sendToMaintenance = async (id) => {
-    if (!window.confirm("Send asset to maintenance?")) return;
+    // if (!window.confirm("Send asset to maintenance?")) return;
 
     try {
       await api.put(
@@ -132,7 +144,7 @@ const AssetTable = ({ onActionComplete }) => {
 
   // ✅ NEW: COMPLETE MAINTENANCE
   const completeMaintenance = async (id) => {
-    if (!window.confirm("Mark maintenance as completed?")) return;
+    // if (!window.confirm("Mark maintenance as completed?")) return;
 
     try {
       await api.put(
@@ -230,15 +242,30 @@ const AssetTable = ({ onActionComplete }) => {
       return 0;
     });
 
+  const handleConfirm = async () => {
+    const { action, asset } = confirm;
+    closeConfirm();
+
+    if (!asset) return;
+
+    if (action === "UNASSIGN") {
+      await unassignAsset(asset._id);
+    }
+
+    if (action === "SEND_MAINTENANCE") {
+      handleSendToMaintenance(asset);
+    }
+  };
+
   return (
-    <div className="bg-white p-4 rounded-xl shadow h-full">
+    <div  className="bg-white p-4 rounded-xl shadow h-full">
       <AssetTableToolbar
         filter={filter}
         setFilter={setFilter}
         issueCount={issueCount}
       />
 
-      <div className="overflow-y-auto max-h-[70vh]">
+      <div className="hidden md:block">
         <table className="w-full text-sm">
           <thead className="bg-gray-200 sticky top-0">
             <tr>
@@ -350,7 +377,13 @@ const AssetTable = ({ onActionComplete }) => {
                     {asset.status === "assigned" && (
                       <button
                         className="bg-gray-500 text-white text-xs px-2 py-1 rounded w-full"
-                        onClick={() => unassignAsset(asset._id)}
+                        onClick={() =>
+                          setConfirm({
+                            open: true,
+                            action: "UNASSIGN",
+                            asset,
+                          })
+                        }
                       >
                         Unassign
                       </button>
@@ -361,7 +394,13 @@ const AssetTable = ({ onActionComplete }) => {
                     ) && (
                       <button
                         className="bg-yellow-500 text-white text-xs px-2 py-1 rounded w-full"
-                        onClick={() => handleSendToMaintenance(asset)}
+                        onClick={() =>
+                          setConfirm({
+                            open: true,
+                            action: "SEND_MAINTENANCE",
+                            asset,
+                          })
+                        }
                       >
                         Send to Maintenance
                       </button>
@@ -383,7 +422,7 @@ const AssetTable = ({ onActionComplete }) => {
                         setShowHistory(true);
                       }}
                     >
-                      History / PDF
+                      History
                     </button>
                   </td>
                 </tr>
@@ -392,6 +431,42 @@ const AssetTable = ({ onActionComplete }) => {
           </tbody>
         </table>
       </div>
+
+       {/* ================= MOBILE CARDS ================= */}
+  <div className="md:hidden space-y-3">
+    {filteredAssets.length === 0 ? (
+      <p className="text-center text-gray-500 py-6">
+        No assets found
+      </p>
+    ) : (
+      filteredAssets.map((asset) => (
+        <MobileAssetRow
+          key={asset._id}
+          asset={asset}
+          employees={employees}
+          selectedUser={selectedUser}
+          setSelectedUser={setSelectedUser}
+          getStatusBadge={getStatusBadge}
+          getAssetImage={getAssetImage}
+          getEmployeeAvatar={getEmployeeAvatar}
+          onAssign={assignAsset}
+          onUnassign={() =>
+            setConfirm({ open: true, action: "UNASSIGN", asset })
+          }
+          onSendToMaintenance={() =>
+            setConfirm({ open: true, action: "SEND_MAINTENANCE", asset })
+          }
+          onCompleteMaintenance={() => setMaintenanceAsset(asset)}
+          onHistory={() => {
+            setSelectedAsset(asset);
+            setShowHistory(true);
+          }}
+        />
+      ))
+    )}
+  </div>
+
+
 
       {showHistory && selectedAsset && (
         <HistoryModel
@@ -429,6 +504,24 @@ const AssetTable = ({ onActionComplete }) => {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={confirm.open}
+        title={
+          confirm.action === "UNASSIGN"
+            ? "Unassign Asset?"
+            : "Send Asset to Maintenance?"
+        }
+        message={
+          confirm.action === "UNASSIGN"
+            ? `This will remove the asset from ${confirm.asset?.assignedTo?.name}.`
+            : "The asset will be marked under maintenance."
+        }
+        confirmText={confirm.action === "UNASSIGN" ? "Unassign" : "Send"}
+        confirmVariant={confirm.action === "UNASSIGN" ? "danger" : "warning"}
+        onConfirm={handleConfirm}
+        onCancel={closeConfirm}
+      />
     </div>
   );
 };

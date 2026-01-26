@@ -10,7 +10,8 @@ import {
 
 const ReportStatCards = ({ stats }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+
       <StatCard title="Total Assets" value={stats.totalAssets} icon={<Package />} />
       <StatCard title="Assets Assigned" value={stats.assigned} icon={<UserCheck />} />
       <StatCard title="Unassigned / In Stock" value={stats.unassigned} icon={<Warehouse />} />

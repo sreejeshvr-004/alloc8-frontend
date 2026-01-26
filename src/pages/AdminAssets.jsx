@@ -5,6 +5,7 @@ import { downloadPdf } from "../utils/downloadPdf";
 
 import AssetDetailsModal from "../components/AssetDetailsModal";
 import ConfirmDeactivateModal from "../components/ConfirmDeactivateModal";
+import MobileAssetCard from "../components/mobile/MobileAssetCard";
 
 const AdminAssets = () => {
   const [assets, setAssets] = useState([]);
@@ -18,6 +19,7 @@ const AdminAssets = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("az");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // ===== FORM STATE =====
   const [form, setForm] = useState({
@@ -108,37 +110,57 @@ const AdminAssets = () => {
     });
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* ================= HEADER ================= */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Manage Assets</h2>
+    <div className=" bg-gray-100">
+      <div className="mx-auto p-4 md:p-6 md:max-w-7xl">
+ {/* ================= HEADER ================= */}
+<div className="mb-6">
+  <div
+    className="
+      flex flex-col gap-4
+      md:flex-row md:items-center md:justify-between
+    "
+  >
+    {/* Title */}
+    <div>
+      <h2 className="text-2xl font-semibold text-gray-900">
+        Manage Assets
+      </h2>
+      <p className="text-sm text-gray-500 mt-1">
+        Create, view, and manage company assets
+      </p>
+    </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => navigate("/admin/assets/categories")}
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
-            >
-              Manage Categories
-            </button>
+    {/* Actions */}
+    <div className="flex gap-2">
+      <button
+        onClick={() => navigate("/admin/assets/categories")}
+        className="
+          px-4 py-2 text-sm font-medium
+          rounded-lg border
+          bg-white text-gray-700
+          hover:bg-gray-50
+          transition
+        "
+      >
+        Manage Categories
+      </button>
 
-            <button
-              onClick={() => navigate("/admin")}
-              className="bg-gray-600 text-white px-4 py-2 rounded"
-            >
-              Back to Dashboard
-            </button>
+      <button
+        onClick={() => navigate("/admin")}
+        className="
+          px-4 py-2 text-sm font-medium
+          rounded-lg
+          bg-gray-900 text-white
+          hover:bg-gray-800
+          transition
+        "
+      >
+        Back
+      </button>
+    </div>
+  </div>
+</div>
 
-            <button
-              onClick={() =>
-                downloadPdf("/assets/export/all/pdf", "all-assets.pdf")
-              }
-              className="bg-indigo-600 text-white px-4 py-2 rounded"
-            >
-              Download All Assets PDF
-            </button>
-          </div>
-        </div>
 
         {/* ================= CREATE ASSET ================= */}
         <div className="bg-white p-6 rounded-xl shadow mb-8 max-w-xl">
@@ -243,133 +265,216 @@ const AdminAssets = () => {
           <h3 className="text-lg font-semibold mb-4">Assets</h3>
 
           <div className="overflow-x-auto">
-            <div className="flex flex-wrap gap-3 mb-4">
-              {/* SEARCH */}
-              <input
-                type="text"
-                placeholder="Search by name or serial"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border p-2 rounded w-64"
-              />
+            {/* FILTER BAR */}
+            <div className="mb-4">
+              {/* Mobile toggle */}
+              <div className="flex items-center justify-between md:hidden">
+                <input
+                  type="text"
+                  placeholder="Search assets"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="border p-2 rounded flex-1 mr-2"
+                />
 
-              {/* STATUS FILTER */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border p-2 rounded"
-              >
-                <option value="all">All Status</option>
-                <option value="available">Available</option>
-                <option value="assigned">Assigned</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="inactive">Inactive</option>
-              </select>
+                <button
+                  onClick={() => setFiltersOpen(!filtersOpen)}
+                  className="border px-3 py-2 rounded bg-gray-100"
+                  aria-label="Toggle filters"
+                >
+                  ☰
+                </button>
+              </div>
 
-              {/* CATEGORY FILTER */}
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="border p-2 rounded"
-              >
-                <option value="all">All Categories</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              {/* Desktop filters */}
+              <div className="hidden md:flex flex-wrap gap-3 mt-3">
+                {/* SEARCH */}
+                <input
+                  type="text"
+                  placeholder="Search by name or serial"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="border p-2 rounded w-64"
+                />
 
-              {/* SORT */}
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="border p-2 rounded"
-              >
-                <option value="az">Name A–Z</option>
-                <option value="za">Name Z–A</option>
-              </select>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="border p-2 rounded"
+                >
+                  <option value="all">All Status</option>
+                  <option value="available">Available</option>
+                  <option value="assigned">Assigned</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="border p-2 rounded"
+                >
+                  <option value="all">All Categories</option>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="border p-2 rounded"
+                >
+                  <option value="az">Name A–Z</option>
+                  <option value="za">Name Z–A</option>
+                </select>
+              </div>
+
+              {/* Mobile expanded filters */}
+              {filtersOpen && (
+                <div className="md:hidden mt-3 space-y-2">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="border p-2 rounded w-full"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="available">Available</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="border p-2 rounded w-full"
+                  >
+                    <option value="all">All Categories</option>
+                    {categories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="border p-2 rounded w-full"
+                  >
+                    <option value="az">Name A-Z</option>
+                    <option value="za">Name Z-A</option>
+                  </select>
+                </div>
+              )}
             </div>
 
-            <table className="w-full text-sm">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="p-2 text-left">Name</th>
-                  <th className="p-2 text-left">Category</th>
-                  <th className="p-2 text-left">Serial</th>
-                  <th className="p-2 text-left">Cost</th>
-                  <th className="p-2 text-left">Warranty</th>
-                  <th className="p-2 text-left">Status</th>
-                  <th className="p-2 text-left">Assigned</th>
-                  <th className="p-2 text-left">Actions</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredAssets.map((asset) => (
-
-                  <tr
-                    key={asset._id}
-                    className={`border-t hover:bg-gray-50 ${
-                      asset.status === "inactive" ? "opacity-50" : ""
-                    }`}
-                  >
-                    <td className="p-2">{asset.name}</td>
-                    <td className="p-2">{asset.category}</td>
-                    <td className="p-2 text-xs">{asset.serialNumber}</td>
-                    <td className="p-2">₹{asset.assetCost || 0}</td>
-                    <td className="p-2">
-                      {asset.warrantyExpiry
-                        ? new Date(asset.warrantyExpiry).toLocaleDateString()
-                        : "-"}
-                    </td>
-                    <td className="p-2">
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          asset.status === "available"
-                            ? "bg-green-100 text-green-700"
-                            : asset.status === "inactive"
-                              ? "bg-gray-200 text-gray-600"
-                              : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {asset.status}
-                      </span>
-                    </td>
-                    <td className="p-2">{asset.assignedTo?.name || "-"}</td>
-                    <td className="p-2 space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedAsset(asset);
-                          setShowAssetModal(true);
-                        }}
-                        className="bg-blue-600 text-white text-xs px-2 py-1 rounded"
-                      >
-                        View
-                      </button>
-
-                      <button
-                        disabled={asset.status === "inactive"}
-                        onClick={() => {
-                          setSelectedAsset(asset);
-                          setShowConfirmModal(true);
-                        }}
-                        className={`text-xs px-2 py-1 rounded ${
-                          asset.status === "inactive"
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-red-500 text-white"
-                        }`}
-                      >
-                        Remove
-                      </button>
-                    </td>
+            <div className="hidden md:block">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-200">
+                  <tr>
+                    <th className="p-2 text-left">Name</th>
+                    <th className="p-2 text-left">Category</th>
+                    <th className="p-2 text-left">Serial</th>
+                    <th className="p-2 text-left">Cost</th>
+                    <th className="p-2 text-left">Warranty</th>
+                    <th className="p-2 text-left">Status</th>
+                    <th className="p-2 text-left">Assigned</th>
+                    <th className="p-2 text-left">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+
+                <tbody>
+                  {filteredAssets.map((asset) => (
+                    <tr
+                      key={asset._id}
+                      className={`border-t hover:bg-gray-50 ${
+                        asset.status === "inactive" ? "opacity-50" : ""
+                      }`}
+                    >
+                      <td className="p-2">{asset.name}</td>
+                      <td className="p-2">{asset.category}</td>
+                      <td className="p-2 text-xs">{asset.serialNumber}</td>
+                      <td className="p-2">₹{asset.assetCost || 0}</td>
+                      <td className="p-2">
+                        {asset.warrantyExpiry
+                          ? new Date(asset.warrantyExpiry).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="p-2">
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${
+                            asset.status === "available"
+                              ? "bg-green-100 text-green-700"
+                              : asset.status === "inactive"
+                                ? "bg-gray-200 text-gray-600"
+                                : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {asset.status}
+                        </span>
+                      </td>
+                      <td className="p-2">{asset.assignedTo?.name || "-"}</td>
+                      <td className="p-2 space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedAsset(asset);
+                            setShowAssetModal(true);
+                          }}
+                          className="bg-blue-600 text-white text-xs px-2 py-1 rounded"
+                        >
+                          View
+                        </button>
+
+                        <button
+                          disabled={asset.status === "inactive"}
+                          onClick={() => {
+                            setSelectedAsset(asset);
+                            setShowConfirmModal(true);
+                          }}
+                          className={`text-xs px-2 py-1 rounded ${
+                            asset.status === "inactive"
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-red-500 text-white"
+                          }`}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {assets.length === 0 && (
               <p className="text-center text-gray-500 mt-4">No assets found</p>
+            )}
+          </div>
+          {/* ================= MOBILE ASSET CARDS ================= */}
+          <div className="md:hidden space-y-3">
+            {filteredAssets.length === 0 ? (
+              <p className="text-center text-gray-500 text-sm">
+                No assets found
+              </p>
+            ) : (
+              filteredAssets.map((asset) => (
+                <MobileAssetCard
+                  key={asset._id}
+                  asset={asset}
+                  onView={(a) => {
+                    setSelectedAsset(a);
+                    setShowAssetModal(true);
+                  }}
+                  onRemove={(a) => {
+                    setSelectedAsset(a);
+                    setShowConfirmModal(true);
+                  }}
+                />
+              ))
             )}
           </div>
         </div>

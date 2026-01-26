@@ -5,13 +5,16 @@ import { useNavigate } from "react-router-dom";
 import EmployeeAssetHistoryModal from "../components/EmployeeAssetHistoryModal";
 import { downloadPdf } from "../utils/downloadPdf";
 import EditEmployeeModal from "../components/EditEmployeeModal";
+import MobileUserCard from "../components/mobile/MobileUserCard";
 
 const AdminUsers = () => {
+
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [status, setStatus] = useState("");
   const [sortBy, setSortBy] = useState("name");
-
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
 
@@ -77,7 +80,7 @@ const AdminUsers = () => {
     const res = await api.post(
       "/users",
       { ...form, role: "employee" },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     );
 
     setUsers((prev) => [res.data, ...prev]);
@@ -100,7 +103,7 @@ const AdminUsers = () => {
     });
 
     setUsers((prev) =>
-      prev.map((u) => (u._id === id ? { ...u, isDeleted: true } : u))
+      prev.map((u) => (u._id === id ? { ...u, isDeleted: true } : u)),
     );
   };
 
@@ -108,11 +111,11 @@ const AdminUsers = () => {
     await api.put(
       `/users/${id}/restore`,
       {},
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     );
 
     setUsers((prev) =>
-      prev.map((u) => (u._id === id ? { ...u, isDeleted: false } : u))
+      prev.map((u) => (u._id === id ? { ...u, isDeleted: false } : u)),
     );
   };
 
@@ -124,15 +127,15 @@ const AdminUsers = () => {
       search
         ? u.name.toLowerCase().includes(search.toLowerCase()) ||
           u.email.toLowerCase().includes(search.toLowerCase())
-        : true
+        : true,
     )
     .filter((u) =>
       departmentFilter
         ? u.department?.toLowerCase().includes(departmentFilter.toLowerCase())
-        : true
+        : true,
     )
     .filter((u) =>
-      status ? (status === "active" ? !u.isDeleted : u.isDeleted) : true
+      status ? (status === "active" ? !u.isDeleted : u.isDeleted) : true,
     )
     .sort((a, b) => {
       if (sortBy === "name") return a.name.localeCompare(b.name);
@@ -147,40 +150,35 @@ const AdminUsers = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto p-6">
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Users Management</h2>
+        {/* ================= HEADER ================= */}
+        <div className="mb-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Users Management
+            </h2>
 
-          <div className="space-x-2">
-            <button
-              onClick={() =>
-                downloadPdf("/users/export/all/pdf", "all-employees.pdf")
-              }
-              className="bg-indigo-600 text-white px-3 py-2 rounded"
-            >
-              Download Employees PDF
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => navigate("/admin/departments")}
+                className="
+          px-4 py-2 text-sm font-medium
+          rounded-lg border
+          bg-white text-gray-700
+          hover:bg-gray-50
+          transition"
+              >
+                Departments
+              </button>
 
-            <button
-              onClick={() => navigate("/admin/departments")}
-              className="bg-indigo-500 text-white px-3 py-2 rounded"
-            >
-              Manage Departments
-            </button>
-
-            <button
-              onClick={() => navigate("/admin")}
-              className="bg-gray-600 text-white px-3 py-2 rounded"
-            >
-              Dashboard
-            </button>
-
-            <button
-              onClick={logout}
-              className="bg-red-500 text-white px-3 py-2 rounded"
-            >
-              Logout
-            </button>
+              <button
+                onClick={() => navigate("/admin")}
+                className="px-4 py-2 text-sm rounded-lg
+                   bg-gray-700 text-white
+                   hover:bg-gray-800 transition"
+              >
+                Dashboard
+              </button>
+            </div>
           </div>
         </div>
 
@@ -279,7 +277,7 @@ const AdminUsers = () => {
                 <div className="absolute z-10 w-full bg-white border rounded shadow max-h-40 overflow-y-auto">
                   {departments
                     .filter((d) =>
-                      d.toLowerCase().includes(deptQuery.toLowerCase())
+                      d.toLowerCase().includes(deptQuery.toLowerCase()),
                     )
                     .map((d) => (
                       <div
@@ -311,54 +309,71 @@ const AdminUsers = () => {
         </div>
 
         {/* EMPLOYEES TABLE (UNCHANGED) */}
-               <div className="bg-white p-6 rounded-xl shadow">
+        <div className="bg-white p-6 rounded-xl shadow">
           <h3 className="text-lg font-semibold mb-4">Employees</h3>
 
           {/* FILTERS */}
-          <div className="flex flex-wrap gap-3 mb-4">
-            <input
-              placeholder="Search name or email"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border p-2 rounded w-56"
-            />
+<div className="mb-4">
+  {/* Mobile */}
+  <div className="flex gap-2 md:hidden">
+    <input
+      placeholder="Search name or email"
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="border p-2 rounded flex-1"
+    />
 
-            <select
-              value={departmentFilter}
-              onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="border p-2 rounded"
-            >
-              <option value="">All Departments</option>
+    <button
+      onClick={() => setFiltersOpen((p) => !p)}
+      className="border px-3 rounded bg-gray-100"
+    >
+      ☰
+    </button>
+  </div>
 
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
+  {filtersOpen && (
+    <div className="md:hidden mt-3 space-y-2">
+      <select
+        value={departmentFilter}
+        onChange={(e) => setDepartmentFilter(e.target.value)}
+        className="border p-2 rounded w-full"
+      >
+        <option value="">All Departments</option>
+        {departments.map((d) => (
+          <option key={d} value={d}>{d}</option>
+        ))}
+      </select>
 
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="border p-2 rounded"
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+      <select
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+        className="border p-2 rounded w-full"
+      >
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
 
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="border p-2 rounded"
-            >
-              <option value="name">Sort by Name</option>
-              <option value="department">Sort by Department</option>
-              <option value="status">Sort by Status</option>
-            </select>
-          </div>
+      <select
+        value={sortBy}
+        onChange={(e) => setSortBy(e.target.value)}
+        className="border p-2 rounded w-full"
+      >
+        <option value="name">Sort by Name</option>
+        <option value="department">Sort by Department</option>
+        <option value="status">Sort by Status</option>
+      </select>
+    </div>
+  )}
 
-          <div className="overflow-x-auto">
+  {/* Desktop */}
+  <div className="hidden md:flex flex-wrap gap-3 mt-3">
+    {/* same selects you already have */}
+  </div>
+</div>
+
+
+          <div className="hidden md:block">
             <table className="w-full text-sm">
               <thead className="bg-gray-200">
                 <tr>
@@ -423,8 +438,26 @@ const AdminUsers = () => {
               </tbody>
             </table>
           </div>
+          {/* MOBILE CARDS */}
+          <div className="md:hidden space-y-3">
+            {filteredUsers.length === 0 ? (
+              <p className="text-center text-gray-500 text-sm">
+                No users found
+              </p>
+            ) : (
+              filteredUsers.map((user) => (
+                <MobileUserCard
+                  key={user._id}
+                  user={user}
+                  onEdit={setEditUser}
+                  onDisable={deleteUser}
+                  onRestore={restoreUser}
+                  onView={setSelectedEmployeeId}
+                />
+              ))
+            )}
+          </div>
         </div>
-
       </div>
 
       {selectedEmployeeId && (

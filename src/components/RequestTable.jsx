@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import ApproveRequestModal from "./ApporveRequestModal";
 import RejectRequestModal from "./RejectRequestModal";
+import MobileRequestCard from "./mobile/MobileRequestCard";
 
 const RequestTable = ({ onActionComplete }) => {
   const [rejectRequest, setRejectRequest] = useState(null);
@@ -16,6 +17,15 @@ const RequestTable = ({ onActionComplete }) => {
     });
     setRequests(res.data);
   };
+
+  const handleApprove = (request) => {
+  setApproveRequest(request);
+};
+
+const handleReject = (request) => {
+  setRejectRequest(request);
+};
+
 
   useEffect(() => {
     fetchRequests();
@@ -43,7 +53,7 @@ const RequestTable = ({ onActionComplete }) => {
     <div className="bg-white p-6 rounded-xl shadow">
       <h3 className="text-md font-semibold mb-4">Pending Requests</h3>
 
-      <div className="overflow-x-auto">
+      <div className="hidden md:block">
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
@@ -95,6 +105,25 @@ const RequestTable = ({ onActionComplete }) => {
           </tbody>
         </table>
       </div>
+
+      {/* MOBILE VIEW */}
+<div className="md:hidden space-y-3">
+  {pendingRequests.length === 0 ? (
+    <p className="text-center text-gray-500 text-sm">
+      No pending requests
+    </p>
+  ) : (
+    pendingRequests.map((req) => (
+      <MobileRequestCard
+        key={req._id}
+        request={req}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
+    ))
+  )}
+</div>
+
 
       {approveRequest && (
         <ApproveRequestModal
