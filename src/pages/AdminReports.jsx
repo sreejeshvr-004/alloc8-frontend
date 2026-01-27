@@ -205,92 +205,197 @@ const AdminReports = () => {
     }
   };
 
-  const exportAssetRegisterPDF = () => {
-    downloadPdf("/reports/assets/full/pdf", "full-asset-register.pdf");
+  const openPurchaseCostPreview = async () => {
+    try {
+      const res = await api.get("/reports/financial/purchase-cost");
+
+      setPreview({
+        open: true,
+        title: "Purchase Cost Report",
+        columns: res.data.columns,
+        rows: res.data.rows,
+      });
+    } catch (err) {
+      alert("Failed to load purchase cost report");
+      console.error(err);
+    }
   };
-  const exportAssetRegisterExcel = () => {
-    downloadExcel("/reports/assets/full/excel", "full-asset-register.xlsx");
+  const openMaintenanceExpensePreview = async () => {
+    try {
+      const res = await api.get("/reports/financial/maintenance-expense");
+
+      setPreview({
+        open: true,
+        title: "Maintenance Expense",
+        columns: res.data.columns,
+        rows: res.data.rows,
+      });
+    } catch (err) {
+      alert("Failed to load maintenance expense report");
+      console.error(err);
+    }
   };
-  const exportAssetsByCategoryPDF = () => {
-    downloadPdf("/reports/assets/by-category/pdf", "assets-by-category.pdf");
+  const openAuditFindingsPreview = async () => {
+    try {
+      const res = await api.get("/reports/financial/audit-findings");
+      setPreview({
+        open: true,
+        title: "Audit Findings",
+        columns: res.data.columns,
+        rows: res.data.rows,
+      });
+    } catch (err) {
+      alert("Failed to load audit findings");
+      console.error(err);
+    }
   };
-  const exportAssetsByCategoryExcel = () => {
+  const openWriteOffSummaryPreview = async () => {
+    try {
+      const res = await api.get("/reports/financial/write-off");
+      setPreview({
+        open: true,
+        title: "Write-off Summary",
+        columns: res.data.columns,
+        rows: res.data.rows,
+      });
+    } catch (err) {
+      alert("Failed to load Write-off Summary");
+      console.error(err);
+    }
+  };
+
+  const exportAssetRegisterPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
+  };
+  const exportAssetRegisterExcel = ({ title, columns, rows }) => {
+    downloadExcel("/reports/export/excel", { title, columns, rows });
+  };
+  const exportAssetsByCategoryPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
+  };
+  const exportAssetsByCategoryExcel = ({ title, columns, rows }) => {
     downloadExcel(
-      "/reports/assets/by-category/excel",
-      "assets-by-category.xlsx",
+      "/reports/export/excel",
+      { title, columns, rows }
     );
   };
-  const exportAssetsByStatusPDF = () => {
-    downloadPdf("/reports/assets/by-status/pdf", "assets-by-status.pdf");
+  const exportAssetsByStatusPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
   };
-  const exportAssetsByStatusExcel = () => {
-    downloadExcel("/reports/assets/by-status/excel", "assets-by-status.xlsx");
+  const exportAssetsByStatusExcel = ({ title, columns, rows }) => {
+    downloadExcel("/reports/export/excel", { title, columns, rows });
   };
-  const exportAssetsByLocationPDF = () => {
-    downloadPdf("/reports/assets/by-location/pdf", "assets-by-location.pdf");
+  const exportAssetsByLocationPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
   };
-  const exportAssetsByLocationExcel = () => {
+  const exportAssetsByLocationExcel = ({ title, columns, rows }) => {
     downloadExcel(
-      "/reports/assets/by-location/excel",
-      "assets-by-location.xlsx",
+      "/reports/export/excel",
+      { title, columns, rows }
     );
   };
-  const exportMaintenanceLogsPDF = () => {
-    downloadPdf("/reports/maintenance/logs/pdf", "maintenance-logs.pdf");
+  const exportMaintenanceLogsPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
   };
-  const exportMaintenanceLogsExcel = () => {
-    downloadExcel("/reports/maintenance/logs/excel", "maintenance-logs.xlsx");
+  const exportMaintenanceLogsExcel = ({ title, columns, rows }) => {
+    downloadExcel("/reports/export/excel", { title, columns, rows });
   };
-  const exportWarrantyPDF = () => {
+  const exportWarrantyPDF = ({ title, columns, rows }) => {
     downloadPdf(
-      "/reports/assets/warranty/expiring/pdf",
-      "warranty-expiring.pdf",
+      "/reports/export/pdf",
+      { title, columns, rows }
     );
   };
-  const exportWarrantyExcel = () => {
+  const exportWarrantyExcel = ({ title, columns, rows }) => {
     downloadExcel(
-      "/reports/assets/warranty/expiring/excel",
-      "warranty-expiring.xlsx",
+      "/reports/export/excel",
+      { title, columns, rows }
     );
   };
-  const exportWarrantyAMCPDF = () => {
-    downloadPdf("/reports/assets/warranty/pdf", "warranty-amc-report.pdf");
+  const exportWarrantyAMCPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
   };
-  const exportWarrantyAMCExcel = () => {
-    downloadExcel("/reports/assets/warranty/excel", "warranty-amc-report.xlsx");
+  const exportWarrantyAMCExcel = ({ title, columns, rows }) => {
+    downloadExcel("/reports/export/excel",{ title, columns, rows });
   };
 
-  const exportAssignmentHistoryPDF = () => {
-    downloadPdf("/reports/assignment/history/pdf", "assignment-history.pdf");
+  const exportAssignmentHistoryPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
   };
-  const exportAssignmentHistoryExcel = () => {
+  const exportAssignmentHistoryExcel = ({ title, columns, rows }) => {
     downloadExcel(
-      "/reports/assignment/history/excel",
-      "assignment-history.xlsx",
+      "/reports/export/excel",
+      { title, columns, rows }
     );
   };
-  const exportTransferReportsPDF = () => {
-    downloadPdf("/reports/assignment/transfers/pdf", "transfer-reports.pdf");
+  const exportTransferReportsPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
   };
 
-  const exportTransferReportsExcel = () => {
+  const exportTransferReportsExcel = ({ title, columns, rows }) => {
     downloadExcel(
-      "/reports/assignment/transfers/excel",
-      "transfer-reports.xlsx",
+      "/reports/export/excel",
+      { title, columns, rows }
     );
   };
 
-  const exportEmployeeAssetListPDF = () => {
+  const exportEmployeeAssetListPDF = ({ title, columns, rows }) => {
     downloadPdf(
-      "/reports/assignment/employee-assets/pdf",
-      "employee-asset-list.pdf",
+      "/reports/export/pdf",
+      { title, columns, rows }
     );
   };
 
-  const exportEmployeeAssetListExcel = () => {
+  const exportEmployeeAssetListExcel = ({ title, columns, rows }) => {
     downloadExcel(
-      "/reports/assignment/employee-assets/excel",
-      "employee-asset-list.xlsx",
+      "/reports/export/excel",
+      { title, columns, rows }
+    );
+  };
+
+  const exportPurchaseCostReportPDF = ({ title, columns, rows }) => {
+    downloadPdf(
+      "/reports/export/pdf",
+     { title, columns, rows }
+    );
+  };
+
+  const exportPurchaseCostReportExcel = ({ title, columns, rows }) => {
+    downloadExcel(
+      "/reports/export/excel",
+      { title, columns, rows }
+    );
+  };
+  const exportMaintenanceExpensePDF = ({ title, columns, rows }) => {
+    downloadPdf(
+      "/reports/export/pdf",
+      { title, columns, rows }
+    );
+  };
+
+  const exportMaintenanceExpenseExcel = ({ title, columns, rows }) => {
+    downloadExcel(
+      "/reports/export/excel",
+    { title, columns, rows }
+    );
+  };
+
+  const exportAuditFindingsPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
+  };
+  const exportAuditFindingsExcel = ({ title, columns, rows }) => {
+    downloadExcel(
+      "/reports/export/excel",
+      { title, columns, rows }
+    );
+  };
+  const exportWriteOffSummaryPDF = ({ title, columns, rows }) => {
+    downloadPdf("/reports/export/pdf", { title, columns, rows });
+  };
+  const exportWriteOffSummaryExcel = ({ title, columns, rows }) => {
+    downloadExcel(
+      "/reports/export/excel",
+      { title, columns, rows }
     );
   };
 
@@ -335,13 +440,29 @@ const AdminReports = () => {
       pdf: exportEmployeeAssetListPDF,
       excel: exportEmployeeAssetListExcel,
     },
+    "Purchase Cost Report": {
+      pdf: exportPurchaseCostReportPDF,
+      excel: exportPurchaseCostReportExcel,
+    },
+    "Maintenance Expense": {
+      pdf: exportMaintenanceExpensePDF,
+      excel: exportMaintenanceExpenseExcel,
+    },
+
+    "Audit Findings": {
+      pdf: exportAuditFindingsPDF,
+      excel: exportAuditFindingsExcel,
+    },
+    "Write-off Summary": {
+      pdf: exportWriteOffSummaryPDF,
+      excel: exportWriteOffSummaryExcel,
+    },
   };
 
   return (
     <div className="p-6">
       {/* PAGE TITLE */}
       <h1 className="text-2xl font-semibold mb-6">Asset Management Reports</h1>
-
       {/* OVERVIEW STATS */} {/* TOP STATS */}
       {loadingStats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
@@ -353,15 +474,12 @@ const AdminReports = () => {
           ))}
         </div>
       )}
-
       {statsError && (
         <div className="mb-6 text-sm text-red-600">
           Failed to load overview statistics.
         </div>
       )}
-
       {stats && <ReportStatCards stats={stats} />}
-
       {/* ASSET INVENTORY */}
       <ReportSection
         title="Asset Inventory Reports"
@@ -391,7 +509,6 @@ const AdminReports = () => {
           />
         </div>
       </ReportSection>
-
       {/* FINANCIAL */}
       <ReportSection
         title="Financial & Audit Reports"
@@ -401,16 +518,27 @@ const AdminReports = () => {
           <ReportItem
             title="Purchase Cost Report"
             icon={<DollarSign size={18} />}
+            onClick={openPurchaseCostPreview}
           />
-          <ReportItem title="Audit Findings" icon={<FileSearch size={18} />} />
-         
+          <ReportItem
+            title="Maintenance Expense"
+            icon={<Wrench size={18} />}
+            onClick={openMaintenanceExpensePreview}
+          />
+
+          <ReportItem
+            title="Audit Findings"
+            icon={<FileSearch size={18} />}
+            onClick={openAuditFindingsPreview}
+          />
+
           <ReportItem
             title="Write-off Summary"
             icon={<TrendingDown size={18} />}
+            onClick={openWriteOffSummaryPreview}
           />
         </div>
       </ReportSection>
-
       {/* MAINTENANCE */}
       <ReportSection
         title="Maintenance & Warranty Reports"
@@ -436,7 +564,6 @@ const AdminReports = () => {
           />
         </div>
       </ReportSection>
-
       {/* ASSIGNMENT */}
       <ReportSection
         title="Assignment & Movement Reports"
@@ -462,10 +589,11 @@ const AdminReports = () => {
           />
         </div>
       </ReportSection>
-
       <ReportPreviewModal
         open={preview.open}
         title={preview.title}
+        columns={preview.columns}
+        rows={preview.rows}
         onClose={() => setPreview({ ...preview, open: false })}
         onExportPdf={reportExportMap[preview.title]?.pdf}
         onExportExcel={reportExportMap[preview.title]?.excel}
