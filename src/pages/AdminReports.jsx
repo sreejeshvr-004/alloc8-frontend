@@ -392,27 +392,9 @@ const AdminReports = () => {
         </div>
       </ReportSection>
 
-      {/* COMPLIANCE */}
-      <ReportSection
-        title="Compliance & Audit Reports"
-        description="Verification, audits, and regulatory compliance"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <ReportItem
-            title="Physical Verification"
-            icon={<ShieldCheck size={18} />}
-          />
-          <ReportItem
-            title="License Compliance"
-            icon={<FileSearch size={18} />}
-          />
-          <ReportItem title="Audit Findings" icon={<FileSearch size={18} />} />
-        </div>
-      </ReportSection>
-
       {/* FINANCIAL */}
       <ReportSection
-        title="Financial & Depreciation Reports"
+        title="Financial & Audit Reports"
         description="Asset valuation, depreciation and write-offs"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -420,11 +402,8 @@ const AdminReports = () => {
             title="Purchase Cost Report"
             icon={<DollarSign size={18} />}
           />
-          <ReportItem
-            title="Depreciation Schedule"
-            icon={<TrendingDown size={18} />}
-          />
-          <ReportItem title="Book Value Report" icon={<BookOpen size={18} />} />
+          <ReportItem title="Audit Findings" icon={<FileSearch size={18} />} />
+         
           <ReportItem
             title="Write-off Summary"
             icon={<TrendingDown size={18} />}

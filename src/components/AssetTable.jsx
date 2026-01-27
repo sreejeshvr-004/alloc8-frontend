@@ -9,7 +9,7 @@ import ConfirmModal from "./ConfirmModal";
 import AssetTableToolbar from "./AssetTableToolbar";
 import MobileAssetRow from "./mobile/MobileAssetRow";
 
-
+import { assetImageUrl } from "../utils/assetImage";
 
 const AssetTable = ({ onActionComplete }) => {
   const [maintenanceAsset, setMaintenanceAsset] = useState(null);
@@ -198,11 +198,14 @@ const AssetTable = ({ onActionComplete }) => {
     }
   };
 
-  // --- UI helper functions (SAFE, no logic impact) ---  IMAGE DEMO
-  const getAssetImage = () => {
-    // temporary static asset image
-    return "/assets/device.png";
-  };
+  // ---  DB IMAGE else IMAGE DEMO
+  const getAssetImage = (asset) => {
+  if (asset.images && asset.images.length > 0) {
+    return assetImageUrl(asset.images[0]); // primary image
+  }
+  return "/assets/device.png"; // fallback
+};
+
 
   const getEmployeeAvatar = (name = "") => {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -297,7 +300,7 @@ const AssetTable = ({ onActionComplete }) => {
                   <td className="p-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={getAssetImage()}
+                        src={getAssetImage(asset)}
                         alt="asset"
                         className="w-9 h-9 rounded-md border"
                       />

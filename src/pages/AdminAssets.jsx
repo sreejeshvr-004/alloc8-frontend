@@ -22,6 +22,9 @@ const AdminAssets = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // ===== FORM STATE =====
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+
   const [form, setForm] = useState({
     name: "",
     category: "",
@@ -68,7 +71,31 @@ const AdminAssets = () => {
   const createAsset = async (e) => {
     e.preventDefault();
 
-    await api.post("/assets", form);
+    if (!form.name.trim()) {
+    alert("Asset name is required");
+    return;
+  }
+
+  if (!form.category) {
+    alert("Please select a category from the list");
+    return;
+  }
+
+    const formData = new FormData();
+
+    Object.entries(form).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    images.forEach((img) => {
+      formData.append("images", img);
+    });
+
+    await api.post("/assets", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
     setForm({
       name: "",
@@ -77,6 +104,8 @@ const AdminAssets = () => {
       purchaseDate: "",
       warrantyExpiry: "",
     });
+    setImages([]);
+    setImagePreviews([]);
 
     setCategoryQuery("");
     setCategoryOpen(false);
@@ -112,55 +141,54 @@ const AdminAssets = () => {
   return (
     <div className=" bg-gray-100">
       <div className="mx-auto p-4 md:p-6 md:max-w-7xl">
- {/* ================= HEADER ================= */}
-<div className="mb-6">
-  <div
-    className="
+        {/* ================= HEADER ================= */}
+        <div className="mb-6">
+          <div
+            className="
       flex flex-col gap-4
       md:flex-row md:items-center md:justify-between
     "
-  >
-    {/* Title */}
-    <div>
-      <h2 className="text-2xl font-semibold text-gray-900">
-        Manage Assets
-      </h2>
-      <p className="text-sm text-gray-500 mt-1">
-        Create, view, and manage company assets
-      </p>
-    </div>
+          >
+            {/* Title */}
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900">
+                Manage Assets
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Create, view, and manage company assets
+              </p>
+            </div>
 
-    {/* Actions */}
-    <div className="flex gap-2">
-      <button
-        onClick={() => navigate("/admin/assets/categories")}
-        className="
+            {/* Actions */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate("/admin/assets/categories")}
+                className="
           px-4 py-2 text-sm font-medium
           rounded-lg border
           bg-white text-gray-700
           hover:bg-gray-50
           transition
         "
-      >
-        Manage Categories
-      </button>
+              >
+                Manage Categories
+              </button>
 
-      <button
-        onClick={() => navigate("/admin")}
-        className="
+              <button
+                onClick={() => navigate("/admin")}
+                className="
           px-4 py-2 text-sm font-medium
           rounded-lg
           bg-gray-900 text-white
           hover:bg-gray-800
           transition
         "
-      >
-        Back
-      </button>
-    </div>
-  </div>
-</div>
-
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* ================= CREATE ASSET ================= */}
         <div className="bg-white p-6 rounded-xl shadow mb-8 max-w-xl">
@@ -253,6 +281,38 @@ const AdminAssets = () => {
               onChange={handleChange}
               className="w-full border p-2 rounded"
             />
+            <div>
+              <label className="text-sm text-gray-600">Asset Images</label>
+
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  setImages(files);
+
+                  const previews = files.map((file) =>
+                    URL.createObjectURL(file),
+                  );
+                  setImagePreviews(previews);
+                }}
+                className="w-full border p-2 rounded"
+              />
+
+              {/* PREVIEW */}
+              {imagePreviews.length > 0 && (
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {imagePreviews.map((src, idx) => (
+                    <img
+                      key={idx}
+                      src={src}
+                      className="w-16 h-16 rounded border object-cover"
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
 
             <button className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
               Create Asset
