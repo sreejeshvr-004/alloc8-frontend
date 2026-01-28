@@ -27,6 +27,32 @@ const ReportFilters = ({ columns = [], rows = [], filters, setFilters }) => {
       c.toLowerCase().includes("date") || c.toLowerCase().includes("expiry"),
   );
 
+  const applyPreset = (days) => {
+    const today = new Date();
+    const from = new Date();
+
+    from.setDate(today.getDate() - days);
+
+    setFilters((f) => ({
+      ...f,
+      dateColumn: f.dateColumn || dateColumns[0] || "",
+      fromDate: from.toISOString().slice(0, 10),
+      toDate: today.toISOString().slice(0, 10),
+    }));
+  };
+
+  const applyThisMonth = () => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    setFilters((f) => ({
+      ...f,
+        dateColumn: f.dateColumn || dateColumns[0] || "",
+      fromDate: start.toISOString().slice(0, 10),
+      toDate: today.toISOString().slice(0, 10),
+    }));
+  };
+
   return (
     <div className="mb-4 bg-gray-50 border rounded-lg p-4 space-y-4">
       {/* TOP ROW */}
@@ -192,6 +218,29 @@ const ReportFilters = ({ columns = [], rows = [], filters, setFilters }) => {
           )}
         </div>
       )}
+      {/* QUICK PRESETS */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => applyPreset(7)}
+          className="px-3 py-1 text-xs border rounded hover:bg-gray-100"
+        >
+          Last 7 Days
+        </button>
+
+        <button
+          onClick={() => applyPreset(30)}
+          className="px-3 py-1 text-xs border rounded hover:bg-gray-100"
+        >
+          Last 30 Days
+        </button>
+
+        <button
+          onClick={applyThisMonth}
+          className="px-3 py-1 text-xs border rounded hover:bg-gray-100"
+        >
+          This Month
+        </button>
+      </div>
 
       {/* INFO */}
       <div className="flex items-center gap-2 text-xs text-gray-500">

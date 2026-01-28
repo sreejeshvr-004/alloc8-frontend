@@ -32,6 +32,22 @@ const ReportPreviewModal = ({
     direction: "asc", // asc | desc
   });
 
+  const parseDateSafe = (value) => {
+  if (!value) return null;
+
+  // Try normal JS parsing first
+  const parsed = new Date(value);
+  if (!isNaN(parsed)) return parsed;
+
+  // Handle dd/mm/yyyy or dd/mm/yyyy, time
+  const match = value.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!match) return null;
+
+  const [, d, m, y] = match;
+  return new Date(`${y}-${m}-${d}`);
+};
+
+
   // FILTER + SORT LOGIC (single source of truth)
   const processedRows = useMemo(() => {
     let data = [...safeRows];
@@ -93,7 +109,7 @@ const ReportPreviewModal = ({
         const to = filters.toDate ? new Date(filters.toDate) : null;
 
         data = data.filter((row) => {
-          const cellDate = new Date(row[colIndex]);
+          const cellDate = parseDateSafe(row[colIndex]);
           if (isNaN(cellDate)) return false;
 
           if (from && cellDate < from) return false;
