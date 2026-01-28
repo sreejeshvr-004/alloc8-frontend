@@ -9,9 +9,9 @@ const ReturnAssetModal = ({ asset, onClose, onConfirm, loading }) => {
 
         {/* MESSAGE */}
         <p className="text-sm text-gray-600 mb-4">
-          Are you sure you want to return this asset?
+          This will notify the admin that you want to return this asset.
           <br />
-          Once returned, you will no longer be responsible for it.
+          The asset will be unassigned after physical verification.
         </p>
 
         {/* ASSET INFO */}

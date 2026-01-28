@@ -18,7 +18,9 @@ const EmployeeDashboard = () => {
   const [reason, setReason] = useState("");
   const [accordionOpen, setAccordionOpen] = useState(false);
 
-  const [myAssets, setMyAssets] = useState([]);
+  const [currentAssets, setCurrentAssets] = useState([]);
+  const [previousAssets, setPreviousAssets] = useState([]);
+
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [returnAsset, setReturnAsset] = useState(null);
   const [returnLoading, setReturnLoading] = useState(false);
@@ -37,14 +39,17 @@ const EmployeeDashboard = () => {
 
   const fetchMyAssets = async () => {
     const res = await api.get("/users/me/assets");
-    setMyAssets(res.data);
+
+    setCurrentAssets(res.data.currentAssets || []);
+    setPreviousAssets(res.data.previousAssets || []);
   };
+
   const handleIssueReported = () => {
     fetchMyAssets(); // refresh assets after issue
   };
-
   useEffect(() => {
     fetchMyAssets();
+    fetchMyRequests();
   }, []);
 
   const fetchMyRequests = async () => {
@@ -85,15 +90,16 @@ const EmployeeDashboard = () => {
     try {
       setReturnLoading(true);
 
-      // 🔒 FUTURE BACKEND CALL
-      // await api.put(`/employee/assets/${returnAsset._id}/return`);
+      await api.post("/returns", {
+        assetId: returnAsset._id,
+      });
 
-      toast.success("Asset returned successfully");
+      toast.success("Return request sent to admin");
 
       setReturnAsset(null);
       fetchMyAssets();
     } catch (err) {
-      toast.error("Failed to return asset");
+      toast.error(err.response?.data?.message || "Failed to request return");
     } finally {
       setReturnLoading(false);
     }
@@ -114,10 +120,11 @@ const EmployeeDashboard = () => {
       </div>
 
       <EmployeeMyAssets
-        assets={myAssets}
+        assets={currentAssets}
         onReport={(asset) => setSelectedAsset(asset)}
         onReturn={(asset) => setReturnAsset(asset)}
       />
+
       {/* REQUEST FORM */}
       <div className="bg-white p-4 sm:p-6 mt-4 rounded-lg shadow mb-8 max-w-xl w-full">
         <h3 className="text-lg font-semibold mb-4">Request an Asset</h3>
@@ -253,7 +260,7 @@ const EmployeeDashboard = () => {
         />
       </div>
       <div>
-        <PreviouslyUsedAssets assets={myAssets} />
+        <PreviouslyUsedAssets assets={previousAssets} />
       </div>
       {selectedAsset && (
         <ReportIssueModal

@@ -1,9 +1,15 @@
-const EmployeeMyAssets = ({ assets, onReport, onReturn }) => {
+const EmployeeMyAssets = ({ assets = [] }) => {
+  if (!Array.isArray(assets)) {
+  console.error("EmployeeMyAssets received non-array:", assets);
+  assets = []; // ✅ fallback instead of killing render
+}
+
   const assignedAssets =
     assets?.filter(
       (asset) =>
         asset.status === "assigned" ||
-        asset.status === "issue_reported"
+        asset.status === "issue_reported" ||
+        asset.status === "return_requested",
     ) || [];
 
   if (assignedAssets.length === 0) {
@@ -17,8 +23,8 @@ const EmployeeMyAssets = ({ assets, onReport, onReturn }) => {
           </h3>
 
           <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto px-2">
-            You currently don't have any assets assigned to you.
-            If you need an asset, please submit a request above or wait for admin allocation.
+            You currently don't have any assets assigned to you. If you need an
+            asset, please submit a request above or wait for admin allocation.
           </p>
         </div>
       </div>
@@ -32,7 +38,7 @@ const EmployeeMyAssets = ({ assets, onReport, onReturn }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {assignedAssets.map((asset) => {
           const isIssueReported = asset.status === "issue_reported";
-
+          const isReturnRequested = asset.status === "return_requested";
           return (
             <div
               key={asset._id}
@@ -40,9 +46,7 @@ const EmployeeMyAssets = ({ assets, onReport, onReturn }) => {
             >
               {/* ASSET INFO */}
               <div>
-                <h4 className="font-semibold text-gray-800">
-                  {asset.name}
-                </h4>
+                <h4 className="font-semibold text-gray-800">{asset.name}</h4>
 
                 <p className="text-sm text-gray-600">
                   Category: {asset.category}
@@ -58,12 +62,16 @@ const EmployeeMyAssets = ({ assets, onReport, onReturn }) => {
                     className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                       isIssueReported
                         ? "bg-orange-100 text-orange-700"
-                        : "bg-green-100 text-green-700"
+                        : isReturnRequested
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-green-100 text-green-700"
                     }`}
                   >
                     {isIssueReported
                       ? "Issue Reported (Pending Admin)"
-                      : "Assigned"}
+                      : isReturnRequested
+                        ? "Return Requested (Pending Admin)"
+                        : "Assigned"}
                   </span>
                 </div>
               </div>
@@ -73,7 +81,7 @@ const EmployeeMyAssets = ({ assets, onReport, onReturn }) => {
                 {/* REPORT ISSUE */}
                 <button
                   onClick={() => onReport(asset)}
-                  disabled={isIssueReported}
+                  disabled={isIssueReported || isReturnRequested}
                   className={`px-3 py-1.5 rounded text-sm font-medium transition
                     ${
                       isIssueReported
@@ -87,7 +95,7 @@ const EmployeeMyAssets = ({ assets, onReport, onReturn }) => {
                 {/* RETURN ASSET */}
                 <button
                   onClick={() => onReturn?.(asset)}
-                  disabled={isIssueReported}
+                  disabled={isIssueReported || isReturnRequested}
                   className={`px-3 py-1.5 rounded text-sm font-medium transition
                     ${
                       isIssueReported
@@ -95,7 +103,7 @@ const EmployeeMyAssets = ({ assets, onReport, onReturn }) => {
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                 >
-                  Return Asset
+                  {isReturnRequested ? "Return Requested" : "Return Asset"}
                 </button>
               </div>
             </div>

@@ -14,7 +14,7 @@ import { assetImageUrl } from "../utils/assetImage";
 const AssetTable = ({ onActionComplete }) => {
   const [maintenanceAsset, setMaintenanceAsset] = useState(null);
   const [openMaintenanceModal, setOpenMaintenanceModal] = useState(false);
- 
+
   const [showHistory, setShowHistory] = useState(false);
 
   const [assets, setAssets] = useState([]);
@@ -37,6 +37,9 @@ const AssetTable = ({ onActionComplete }) => {
   const [filter, setFilter] = useState("all"); // all | active | inactive | issue
 
   const issueCount = assets.filter((a) => a.status === "issue_reported").length;
+  const returnCount = assets.filter(
+    (a) => a.status === "return_requested",
+  ).length;
 
   const token = localStorage.getItem("token");
 
@@ -190,6 +193,12 @@ const AssetTable = ({ onActionComplete }) => {
         return (
           <span className={`${base} bg-gray-200 text-gray-600`}>Inactive</span>
         );
+      case "return_requested":
+        return (
+          <span className={`${base} bg-blue-100 text-blue-700`}>
+            Return Requested
+          </span>
+        );
 
       default:
         return (
@@ -200,12 +209,11 @@ const AssetTable = ({ onActionComplete }) => {
 
   // ---  DB IMAGE else IMAGE DEMO
   const getAssetImage = (asset) => {
-  if (asset.images && asset.images.length > 0) {
-    return assetImageUrl(asset.images[0]); // primary image
-  }
-  return "/assets/device.png"; // fallback
-};
-
+    if (asset.images && asset.images.length > 0) {
+      return assetImageUrl(asset.images[0]); // primary image
+    }
+    return "/assets/device.png"; // fallback
+  };
 
   const getEmployeeAvatar = (name = "") => {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -236,6 +244,10 @@ const AssetTable = ({ onActionComplete }) => {
       if (filter === "issue") {
         return asset.status === "issue_reported";
       }
+      if (filter === "return") {
+        return asset.status === "return_requested";
+      }
+
       return true; // "all"
     })
     .sort((a, b) => {
@@ -261,11 +273,12 @@ const AssetTable = ({ onActionComplete }) => {
   };
 
   return (
-    <div  className="bg-white p-4 rounded-xl shadow h-full">
+    <div className="bg-white p-4 rounded-xl shadow h-full">
       <AssetTableToolbar
         filter={filter}
         setFilter={setFilter}
         issueCount={issueCount}
+        returnCount={returnCount}
       />
 
       <div className="hidden md:block">
@@ -377,7 +390,9 @@ const AssetTable = ({ onActionComplete }) => {
                       </>
                     )}
 
-                    {asset.status === "assigned" && (
+                    {["assigned", "return_requested"].includes(
+                      asset.status,
+                    ) && (
                       <button
                         className="bg-gray-500 text-white text-xs px-2 py-1 rounded w-full"
                         onClick={() =>
@@ -435,41 +450,37 @@ const AssetTable = ({ onActionComplete }) => {
         </table>
       </div>
 
-       {/* ================= MOBILE CARDS ================= */}
-  <div className="md:hidden space-y-3">
-    {filteredAssets.length === 0 ? (
-      <p className="text-center text-gray-500 py-6">
-        No assets found
-      </p>
-    ) : (
-      filteredAssets.map((asset) => (
-        <MobileAssetRow
-          key={asset._id}
-          asset={asset}
-          employees={employees}
-          selectedUser={selectedUser}
-          setSelectedUser={setSelectedUser}
-          getStatusBadge={getStatusBadge}
-          getAssetImage={getAssetImage}
-          getEmployeeAvatar={getEmployeeAvatar}
-          onAssign={assignAsset}
-          onUnassign={() =>
-            setConfirm({ open: true, action: "UNASSIGN", asset })
-          }
-          onSendToMaintenance={() =>
-            setConfirm({ open: true, action: "SEND_MAINTENANCE", asset })
-          }
-          onCompleteMaintenance={() => setMaintenanceAsset(asset)}
-          onHistory={() => {
-            setSelectedAsset(asset);
-            setShowHistory(true);
-          }}
-        />
-      ))
-    )}
-  </div>
-
-
+      {/* ================= MOBILE CARDS ================= */}
+      <div className="md:hidden space-y-3">
+        {filteredAssets.length === 0 ? (
+          <p className="text-center text-gray-500 py-6">No assets found</p>
+        ) : (
+          filteredAssets.map((asset) => (
+            <MobileAssetRow
+              key={asset._id}
+              asset={asset}
+              employees={employees}
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+              getStatusBadge={getStatusBadge}
+              getAssetImage={getAssetImage}
+              getEmployeeAvatar={getEmployeeAvatar}
+              onAssign={assignAsset}
+              onUnassign={() =>
+                setConfirm({ open: true, action: "UNASSIGN", asset })
+              }
+              onSendToMaintenance={() =>
+                setConfirm({ open: true, action: "SEND_MAINTENANCE", asset })
+              }
+              onCompleteMaintenance={() => setMaintenanceAsset(asset)}
+              onHistory={() => {
+                setSelectedAsset(asset);
+                setShowHistory(true);
+              }}
+            />
+          ))
+        )}
+      </div>
 
       {showHistory && selectedAsset && (
         <HistoryModel
