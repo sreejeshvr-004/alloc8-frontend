@@ -64,6 +64,15 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <div className="text-right">
+            <button
+            type="button"
+            onClick={()=> navigate("forgot-password")}
+            className="text-sm text-blue-600 hover:underline"
+            >
+              Forgot password?
+            </button>
+          </div>
 
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 transition text-white py-2.5 rounded font-semibold"

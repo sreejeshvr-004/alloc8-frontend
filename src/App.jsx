@@ -12,18 +12,22 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
 
 import AdminRequests from "./pages/AdminRequests";
-import {Toaster} from "react-hot-toast"
+import { Toaster } from "react-hot-toast";
 
 import AdminReports from "./pages/AdminReports";
 
+import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   return (
     <BrowserRouter>
-    <Toaster position="top-right" />
+      <Toaster position="top-right" />
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* ADMIN ROUTES (WITH SIDEBAR + LAYOUT) */}
         <Route
@@ -42,7 +46,6 @@ function App() {
           <Route path="assets/categories" element={<AdminAssetCategories />} />
           <Route path="departments" element={<AdminDepartments />} />
           <Route path="/admin/reports" element={<AdminReports />} />
-
         </Route>
 
         {/* EMPLOYEE ROUTES */}
@@ -54,7 +57,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
       </Routes>
     </BrowserRouter>
   );

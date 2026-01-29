@@ -1,5 +1,8 @@
 import { assetImageUrl } from "../utils/assetImage";
 
+const formatDate = (date) =>
+  date ? new Date(date).toLocaleDateString("en-GB") : "-";
+
 const PreviouslyUsedAssets = ({ assets = [] }) => {
   if (!Array.isArray(assets) || assets.length === 0) {
     return (
@@ -12,87 +15,62 @@ const PreviouslyUsedAssets = ({ assets = [] }) => {
     );
   }
 
-  const statusBadge = (status) => {
-    if (status === "issue") return "bg-red-100 text-red-700";
-    if (status === "maintenance") return "bg-yellow-100 text-yellow-700";
-    return "bg-green-100 text-green-700";
-  };
+  const badge = (status) =>
+    status === "issue"
+      ? "bg-red-100 text-red-700"
+      : status === "maintenance"
+      ? "bg-yellow-100 text-yellow-700"
+      : "bg-green-100 text-green-700";
 
-  const statusText = (status) => {
-    if (status === "issue") return "Issue Reported";
-    if (status === "maintenance") return "Maintenance";
-    return "Returned";
-  };
+  const label = (status) =>
+    status === "issue"
+      ? "Issue Reported"
+      : status === "maintenance"
+      ? "Maintenance"
+      : "Returned";
 
   return (
     <div className="bg-white rounded-xl shadow p-4 sm:p-6 mt-6">
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex justify-between mb-4">
         <h3 className="text-lg font-semibold">Previously Used Assets</h3>
         <button className="text-sm px-4 py-1.5 rounded-full border hover:bg-gray-100">
           View all
         </button>
       </div>
 
-      {/* HORIZONTAL SCROLL */}
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
         {assets.map((asset) => (
           <div
-            key={asset.assetId}
-            className="min-w-[280px] bg-gray-50 rounded-lg border hover:shadow transition flex flex-col">
-            {/* IMAGE */}
+            key={`${asset.assetId}-${asset.assignedAt}`}
+            className="min-w-[260px] bg-gray-50 rounded-lg border hover:shadow transition"
+          >
             <img
               src={
-                asset.image ? assetImageUrl(asset.image) : "/assets/device.png"
+                asset.image
+                  ? assetImageUrl(asset.image)
+                  : "/assets/device.png"
               }
+              onError={(e) =>
+                (e.currentTarget.src = "/assets/device.png")
+              }
+              className="w-full h-24 object-cover rounded-t-lg"
               alt={asset.name}
-              className="w-full h-28 object-cover rounded-t-lg"
             />
 
-            {/* CONTENT */}
-            <div className="p-3 space-y-1">
-              <h4 className="font-semibold text-gray-800">{asset.name}</h4>
-
-              <p className="text-sm text-gray-600">
-                Category: {asset.category}
-              </p>
-
-              <p className="text-sm text-gray-600">
-                Serial: {asset.serialNumber}
-              </p>
-
-              <p className="text-sm text-gray-600">
-                Assigned on:{" "}
-                <span className="font-medium">
-                  {asset.assignedAt
-                    ? new Date(asset.assignedAt).toLocaleDateString()
-                    : "-"}
-                </span>
-              </p>
-
-              <p className="text-sm text-gray-600">
-                Returned on:{" "}
-                <span className="font-medium">
-                  {asset.unassignedAt
-                    ? new Date(asset.unassignedAt).toLocaleDateString()
-                    : "-"}
-                </span>
-              </p>
-
-              <p className="text-sm text-gray-600">
-                Duration used:{" "}
-                <span className="font-medium">
-                  {asset.durationDays} day
-                  {asset.durationDays > 1 ? "s" : ""}
-                </span>
-              </p>
+            <div className="p-2 space-y-0.5 text-sm">
+              <p className="font-semibold">{asset.name}</p>
+              <p>Category: {asset.category}</p>
+              <p>Serial: {asset.serialNumber}</p>
+              <p>Assigned: {formatDate(asset.assignedAt)}</p>
+              <p>Returned: {formatDate(asset.unassignedAt)}</p>
+              <p>Duration: {asset.durationDays} day(s)</p>
 
               <span
-                className={`inline-block mt-2 px-2 py-1 rounded text-xs font-medium ${statusBadge(
-                  asset.finalStatus,
+                className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium ${badge(
+                  asset.finalStatus
                 )}`}
               >
-                {statusText(asset.finalStatus)}
+                {label(asset.finalStatus)}
               </span>
             </div>
           </div>

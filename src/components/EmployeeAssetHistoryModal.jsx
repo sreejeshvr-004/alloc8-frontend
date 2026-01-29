@@ -74,7 +74,7 @@ const EmployeeAssetHistoryModal = ({ employeeId, onClose }) => {
                 onClick={() =>
                   downloadPdf(
                     `/users/${employeeId}/full-report/pdf`,
-                    "employee-full-asset-report.pdf"
+                    "employee-full-asset-report.pdf",
                   )
                 }
                 className="mb-4 bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700"
@@ -168,13 +168,23 @@ const EmployeeAssetHistoryModal = ({ employeeId, onClose }) => {
                         </td>
                         <td className="p-2">
                           <span
-                            className={`px-2 py-1 rounded text-xs ${
-                              a.to === null
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              a.status === "active"
                                 ? "bg-green-100 text-green-700"
-                                : "bg-gray-100 text-gray-700"
+                                : a.status === "issue_reported"
+                                  ? "bg-red-100 text-red-700"
+                                  : a.status === "maintenance"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : a.status === "deactivated"
+                                      ? "bg-gray-300 text-gray-700"
+                                      : "bg-gray-100 text-gray-700"
                             }`}
                           >
-                            {a.to === null ? "Active" : "Returned"}
+                            {a.status === "active" && "Active"}
+                            {a.status === "returned" && "Returned"}
+                            {a.status === "issue_reported" && "Issue Reported"}
+                            {a.status === "maintenance" && "Maintenance"}
+                            {a.status === "deactivated" && "Deactivated"}
                           </span>
                         </td>
                       </tr>
