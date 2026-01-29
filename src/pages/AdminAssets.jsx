@@ -258,6 +258,7 @@ const AdminAssets = () => {
             <input
               name="assetCost"
               type="number"
+              required
               placeholder="Cost"
               value={form.assetCost}
               onChange={handleChange}
@@ -268,6 +269,7 @@ const AdminAssets = () => {
             <input
               name="purchaseDate"
               type="date"
+              required
               value={form.purchaseDate}
               onChange={handleChange}
               className="w-full border p-2 rounded"
@@ -277,6 +279,7 @@ const AdminAssets = () => {
             <input
               name="warrantyExpiry"
               type="date"
+              required
               value={form.warrantyExpiry}
               onChange={handleChange}
               className="w-full border p-2 rounded"
@@ -461,7 +464,7 @@ const AdminAssets = () => {
                       <td className="p-2">₹{asset.assetCost || 0}</td>
                       <td className="p-2">
                         {asset.warrantyExpiry
-                          ? new Date(asset.warrantyExpiry).toLocaleDateString()
+                          ? new Date(asset.warrantyExpiry).toLocaleDateString("en-GB")
                           : "-"}
                       </td>
                       <td className="p-2">

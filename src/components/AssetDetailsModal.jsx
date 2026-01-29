@@ -123,13 +123,13 @@ const AssetDetailsModal = ({ asset, onClose }) => {
           <p>
             <strong>Purchase Date:</strong>{" "}
             {asset.purchaseDate
-              ? new Date(asset.purchaseDate).toLocaleDateString()
+              ? new Date(asset.purchaseDate).toLocaleDateString("en-GB")
               : "-"}
           </p>
           <p>
             <strong>Warranty Expiry:</strong>{" "}
             {asset.warrantyExpiry
-              ? new Date(asset.warrantyExpiry).toLocaleDateString()
+              ? new Date(asset.warrantyExpiry).toLocaleDateString("en-GB")
               : "-"}
           </p>
           <p>
