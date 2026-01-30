@@ -282,7 +282,7 @@ const AssetTable = ({ onActionComplete }) => {
       />
 
       <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-[1100px] w-full text-sm table-fixed">
+        <table className="min-w-275 w-full text-sm table-fixed">
           <thead className="bg-gray-200 sticky top-0">
             <tr>
               <th className="p-3 text-left">Asset</th>

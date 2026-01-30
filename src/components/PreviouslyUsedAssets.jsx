@@ -42,7 +42,7 @@ const PreviouslyUsedAssets = ({ assets = [] }) => {
         {assets.map((asset) => (
           <div
             key={`${asset.assetId}-${asset.assignedAt}`}
-            className="min-w-[260px] bg-gray-50 rounded-lg border hover:shadow transition"
+            className="min-w-65 bg-gray-50 rounded-lg border hover:shadow transition"
           >
             <img
               src={

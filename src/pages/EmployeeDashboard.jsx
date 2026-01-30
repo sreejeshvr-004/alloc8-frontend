@@ -199,7 +199,7 @@ const EmployeeDashboard = () => {
       <div className="bg-white p-6 rounded-lg shadow">
         <h3 className="text-lg font-semibold mb-4">My Requests</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-[700px] w-full border-collapse">
+          <table className="min-w-175 w-full border-collapse">
             <thead>
               <tr className="bg-gray-200 text-left">
                 <th className="p-3">Category</th>

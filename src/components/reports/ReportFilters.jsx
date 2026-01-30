@@ -58,7 +58,7 @@ const ReportFilters = ({ columns = [], rows = [], filters, setFilters }) => {
       {/* TOP ROW */}
       <div className="flex flex-wrap gap-3 items-center">
         {/* SEARCH */}
-        <div className="relative flex-1 min-w-[220px]">
+        <div className="relative flex-1 min-w-55">
           <Search
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"

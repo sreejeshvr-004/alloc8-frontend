@@ -71,7 +71,7 @@ const EditEmployeeModal = ({ user, onClose, onUpdated }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-lg p-6 w-[420px]"
+        className="bg-white rounded-xl shadow-lg p-6 w-105"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold mb-4">Edit Employee</h3>

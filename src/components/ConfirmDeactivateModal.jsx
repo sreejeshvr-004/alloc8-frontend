@@ -7,7 +7,7 @@ const ConfirmDeactivateModal = ({ asset, onConfirm, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-lg p-6 w-[450px]"
+        className="bg-white rounded-xl shadow-lg p-6 w-112.5"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold mb-3 text-red-600">
