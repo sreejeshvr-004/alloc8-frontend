@@ -281,8 +281,8 @@ const AssetTable = ({ onActionComplete }) => {
         returnCount={returnCount}
       />
 
-      <div className="hidden md:block">
-        <table className="w-full text-sm">
+      <div className="hidden md:block overflow-x-auto">
+        <table className="min-w-[1100px] w-full text-sm table-fixed">
           <thead className="bg-gray-200 sticky top-0">
             <tr>
               <th className="p-3 text-left">Asset</th>
@@ -473,7 +473,7 @@ const AssetTable = ({ onActionComplete }) => {
                 setConfirm({ open: true, action: "SEND_MAINTENANCE", asset })
               }
               onCompleteMaintenance={() => setMaintenanceAsset(asset)}
-              onHistory={() => {
+              onViewHistory={() => {
                 setSelectedAsset(asset);
                 setShowHistory(true);
               }}

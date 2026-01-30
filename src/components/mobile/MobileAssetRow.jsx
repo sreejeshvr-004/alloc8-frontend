@@ -14,6 +14,7 @@ const MobileAssetRow = ({
   onUnassign,
   onSendToMaintenance,
   onViewHistory,
+  onCompleteMaintenance,
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState("");
@@ -95,6 +96,17 @@ const MobileAssetRow = ({
             className="bg-yellow-500 text-white text-xs py-2 rounded"
           >
             Maintenance
+          </button>
+        )}
+        {asset.status === "maintenance" && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onCompleteMaintenance(asset);
+            }}
+            className="bg-green-600 text-white text-xs py-2 rounded col-span-2"
+          >
+            Maintenance Completed
           </button>
         )}
       </div>

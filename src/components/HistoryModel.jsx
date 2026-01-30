@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 
-import { downloadPdf } from "../utils/downloadPdf";
+
 
 const HistoryModel = ({ asset, onClose }) => {
   const [history, setHistory] = useState([]);
@@ -182,29 +182,6 @@ const HistoryModel = ({ asset, onClose }) => {
         <div className="flex justify-end mt-4">
           <div className="flex justify-between mt-4">
             <div className="space-x-2">
-              <button
-                onClick={() =>
-                  downloadPdf(
-                    `/assets/${asset._id}/history/pdf`,
-                    `${asset.name}-history.pdf`
-                  )
-                }
-                className="bg-teal-600 text-white  px-3 py-1.5 rounded text-sm hover:bg-gray-600"
-              >
-                Download History PDF
-              </button>
-
-              <button
-                onClick={() =>
-                  downloadPdf(
-                    `/assets/${asset._id}/full-report/pdf`,
-                    `${asset.name}-full-report.pdf`
-                  )
-                }
-                className="bg-teal-600 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-600"
-              >
-                Full Asset Report
-              </button>
               <button
                 onClick={onClose}
                 className="bg-teal-600 text-white  px-3 py-1.5 rounded   text-sm hover:bg-gray-600"

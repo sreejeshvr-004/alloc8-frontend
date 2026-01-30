@@ -26,7 +26,13 @@ const EmployeeAssetHistoryModal = ({ employeeId, onClose }) => {
         });
 
         setEmployee(res.data.employee || null);
-        setAssets(res.data.assets || []);
+        const sortedAssets = (res.data.assets || []).sort((a, b) => {
+          const dateA = a.to ? new Date(a.to) : new Date(); // Present first
+          const dateB = b.to ? new Date(b.to) : new Date();
+          return dateB - dateA;
+        });
+
+        setAssets(sortedAssets);
       } catch (err) {
         console.error("Failed to load employee history", err);
         setError("Failed to load employee details");
@@ -69,18 +75,6 @@ const EmployeeAssetHistoryModal = ({ employeeId, onClose }) => {
             {/* EMPLOYEE DETAILS */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h3 className="font-semibold mb-3">Employee Details</h3>
-
-              <button
-                onClick={() =>
-                  downloadPdf(
-                    `/users/${employeeId}/full-report/pdf`,
-                    "employee-full-asset-report.pdf",
-                  )
-                }
-                className="mb-4 bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700"
-              >
-                Download User Report
-              </button>
 
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
                 <p>
@@ -161,10 +155,10 @@ const EmployeeAssetHistoryModal = ({ employeeId, onClose }) => {
                         <td className="p-2">{a.assetName}</td>
                         <td className="p-2">{a.serial}</td>
                         <td className="p-2">
-                          {new Date(a.from).toLocaleString()}
+                          {new Date(a.from).toLocaleString("en-GB")}
                         </td>
                         <td className="p-2">
-                          {a.to ? new Date(a.to).toLocaleString() : "Present"}
+                          {a.to ? new Date(a.to).toLocaleString("en-GB") : "Present"}
                         </td>
                         <td className="p-2">
                           <span
